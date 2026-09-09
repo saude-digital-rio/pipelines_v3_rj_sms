@@ -1,0 +1,4 @@
+steps:
+  - name: 'ubuntu'
+    entrypoint: 'bash'
+    args: ['echo', 'Hello, World!']
