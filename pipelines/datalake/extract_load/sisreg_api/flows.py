@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
-import tracemalloc
 from typing import Literal, Optional
 
 import pandas as pd
 
 from pipelines.constants import CIT
-from pipelines.utils._trace import display_top
 from pipelines.utils.datalake import upload_df_to_datalake_task
 from pipelines.utils.infisical import get_secret_task
 from pipelines.utils.prefect import clear_concurrency_limit, flow, flow_config
@@ -102,8 +100,6 @@ def extract_sisreg_api(
   dataset_id = dataset_id if dataset_id else "brutos_sisreg_api_v2"
   table_id = table_id if table_id else table_name_from_resource(es_index)
 
-  tracemalloc.start()
-
   for inicio, fim in faixas:
     # 1) Extrai lote a lote, retorna dados em dataframe
     df: pd.DataFrame = extract_from_api(
@@ -168,10 +164,7 @@ def extract_sisreg_api(
           source_format="parquet",
           date_partition_column="data_particao",
         )
-
         os.remove(merged_df_path)
-        snapshot = tracemalloc.take_snapshot()
-        display_top(snapshot)
 
   if mode == "extract":
     # 3) Por fim, apaga arquivos antigos
