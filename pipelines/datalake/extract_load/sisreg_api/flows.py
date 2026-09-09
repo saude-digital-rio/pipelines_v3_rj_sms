@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import tracemalloc
 from typing import Literal, Optional
 
@@ -131,37 +132,44 @@ def extract_sisreg_api(
       )
 
     elif mode == "update":
+      # Ao que parece, resultados de tasks são guardados de alguma forma em memória
+      # para, caso uma task falhe, ela possa ser retentada com os mesmos valores
+      # Uma forma de diminuir o impacto disso é, ao invés de retornar DataFrames,
+      # salvá-los a Parquets e retornar o caminho deles; é o que fazemos abaixo
+
       # 2b) Para cada partição presente nos dados novos:
       for data_particao, partition_df in df.groupby("data_particao"):
         # 2b.1) Lê os dados dessa partição já no BigQuery
-        existing_df = read_partition_from_bigquery(
+        existing_df_path = read_partition_from_bigquery(
           dataset_id=dataset_id,
           table_id=table_id,
           data_particao=data_particao,
           environment=environment,
         )
         # 2b.2) Junta os dados antigos com os dados novos
-        merged_df = merge_partition(
-          old_df=existing_df, new_df=partition_df, data_particao=data_particao
+        merged_df_path = merge_partition(
+          old_df_path=existing_df_path, new_df=partition_df, data_particao=data_particao
         )
         # 2b.3) Apaga os arquivos antigos da partição antes de reenviar
-        deleted_future = delete_partition_files(
+        # TODO: melhorar, porque se upload_... falha, ficamos sem dados
+        delete_partition_files(
           dataset_id=dataset_id,
           table_id=table_id,
           data_particao=data_particao,
           environment=environment,
-          sanity_check=merged_df,
+          sanity_check=merged_df_path,
         )
         # 2b.4) Reupload dos dados agora atualizados
         upload_df_to_datalake_task(
-          df=merged_df,
+          df=pd.read_parquet(merged_df_path).astype(str),
           dataset_id=dataset_id,
           table_id=table_id,
           dump_mode="append",
           source_format="parquet",
           date_partition_column="data_particao",
-          wait_for=[deleted_future],
         )
+
+        os.remove(merged_df_path)
         snapshot = tracemalloc.take_snapshot()
         display_top(snapshot)
 

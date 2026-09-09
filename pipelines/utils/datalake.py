@@ -16,7 +16,7 @@ from pipelines.utils.logger import log
 from pipelines.utils.prefect import authenticated_task as task
 
 
-def safe_df_to_parquet(df: pd.DataFrame, output_path: Optional[str]) -> str:
+def safe_df_to_parquet(df: pd.DataFrame, output_path: Optional[str] = None) -> str:
   """
   Cria um arquivo Parquet que é preenchido com os dados de um DataFrame,
   convertidos para string.
