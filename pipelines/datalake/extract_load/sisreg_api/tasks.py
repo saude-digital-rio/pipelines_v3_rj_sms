@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import time
 from datetime import datetime, timedelta
 from typing import List, Literal, Optional, Tuple
@@ -10,6 +11,7 @@ from google.cloud import bigquery, storage
 from prefect import task as unauthenticated_task
 
 from pipelines.utils.cleanup import cleanup_columns_for_bigquery
+from pipelines.utils.datalake import safe_df_to_parquet
 from pipelines.utils.datetime import is_valid_YYYYMMDD, now, now_str, today
 from pipelines.utils.env import get_google_project_for_environment
 from pipelines.utils.logger import log
@@ -240,17 +242,20 @@ def read_partition_from_bigquery(
   table_id: str,
   data_particao: str,
   environment: Literal["dev", "prod"] = "dev",
-) -> pd.DataFrame:
+) -> str:
   """
   Lê todos os registros de uma partição específica da tabela BigLake (staging)
-  e retorna como DataFrame. Se a partição não existir ou estiver vazia, retorna
-  um DataFrame vazio.
+  e retorna como caminho para um Parquet com os dados. Se a partição não existir
+  ou estiver vazia, retorna uma string vazia.
 
   Args:
     dataset_id(str): Nome do dataset no BigQuery
     table_id(str): Nome da tabela
     data_particao(str): Data da partição no formato "YYYY-MM-DD".
     environment(str): "dev" ou "prod".
+
+  Returns:
+    out(str): Caminho do Parquet com os dados
   """
   project = get_google_project_for_environment(environment)
   full_table = f"`{project}.{dataset_id}_staging.{table_id}`"
@@ -261,11 +266,11 @@ def read_partition_from_bigquery(
   try:
     df = client.query(sql).to_dataframe()
     log(f"[{data_particao}] {len(df)} registros lidos da partição existente.")
-    return df
+    return safe_df_to_parquet(df)
   except Exception as e:
     # A tabela pode ainda não existir na primeira execução
     log(f"[{data_particao}] Não foi possível ler a partição existente: {repr(e)}")
-    return pd.DataFrame()
+    return ""
 
 
 @task()
@@ -274,7 +279,7 @@ def delete_partition_files(
   table_id: str,
   data_particao: str,
   environment: Literal["dev", "prod"] = "dev",
-  sanity_check: pd.DataFrame = None,
+  sanity_check: Optional[str] = None,
 ):
   """
   Apaga todos os arquivos Parquet de uma partição específica no GCS (staging).
@@ -287,7 +292,11 @@ def delete_partition_files(
     sanity_check(pd.DataFrame):
       DataFrame contendo os dados novos; caso esteja vazio, a partição não é deletada.
   """
-  if sanity_check is None or sanity_check.empty:
+  if (
+    not sanity_check
+    or not os.path.isfile(sanity_check)
+    or os.stat(sanity_check).st_size <= 0
+  ):
     raise RuntimeError(
       f"DataFrame `sanity_check` veio vazio! Partição {data_particao} não será apagada"
     )
@@ -316,7 +325,7 @@ def delete_partition_files(
 
 
 @unauthenticated_task()
-def merge_partition(old_df: pd.DataFrame, new_df: pd.DataFrame, data_particao: str):
+def merge_partition(old_df_path: str, new_df: pd.DataFrame, data_particao: str) -> str:
   """
   Junta dois DataFrames, deduplicando por `codigo_solicitacao`.
 
@@ -324,15 +333,20 @@ def merge_partition(old_df: pd.DataFrame, new_df: pd.DataFrame, data_particao: s
     old_df(DataFrame): DataFrame com dados já presentes no datalake.
     new_df(DataFrame): DataFrame com os registros recém-extraídos da API para esta partição.
     data_particao(str): Data da partição no formato "YYYY-MM-DD".
+
+  Returns
+    out(str): Caminho do Parquet combinado
   """
-  if old_df.empty:
+  new_df = new_df.reset_index(drop=True).astype(str)
+
+  if not old_df_path:
     log(
       f"[{data_particao}] Nenhum dado já no datalake; {len(new_df)} registros atualizados."
     )
-    return new_df.reset_index(drop=True)
+    return safe_df_to_parquet(new_df)
 
-  old_df = old_df.astype(str)
-  new_df = new_df.astype(str)
+  old_df = pd.read_parquet(old_df_path).astype(str)
+  os.remove(old_df_path)
 
   log(
     f"[{data_particao}] {len(old_df)} registros no datalake; {len(new_df)} atualizados."
@@ -343,7 +357,7 @@ def merge_partition(old_df: pd.DataFrame, new_df: pd.DataFrame, data_particao: s
     .reset_index(drop=True)
   )
   log(f"[{data_particao}] Merge concluído; {len(merged_df)} registros no final")
-  return merged_df
+  return safe_df_to_parquet(merged_df)
 
 
 @task()
