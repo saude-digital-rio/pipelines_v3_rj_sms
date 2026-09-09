@@ -337,15 +337,15 @@ def merge_partition(old_df_path: str, new_df: pd.DataFrame, data_particao: str) 
   Returns
     out(str): Caminho do Parquet combinado
   """
+  new_df = new_df.reset_index(drop=True).astype(str)
+
   if not old_df_path:
     log(
       f"[{data_particao}] Nenhum dado já no datalake; {len(new_df)} registros atualizados."
     )
-    return new_df.reset_index(drop=True)
+    return safe_df_to_parquet(new_df)
 
   old_df = pd.read_parquet(old_df_path).astype(str)
-  new_df = new_df.astype(str)
-
   os.remove(old_df_path)
 
   log(
