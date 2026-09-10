@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from typing import Literal
 
-
 from pipelines.constants import CIT
 from pipelines.datalake.transform.dbt.flows import sms_execute_dbt
 from pipelines.utils.prefect import create_flow_run, flow, flow_config
@@ -57,7 +56,7 @@ def orquestracao_vitacare(
   # wait_for_flow_run_task(flow_run_id=fr_vitacare.id)
 
   # 4. Executa o dbt run com -s tag:vitacare_historico
-  fr_dbt = create_flow_run(flow=sms_execute_dbt, parameters=constants.DBT_PARAMS.value)
+  create_flow_run(flow=sms_execute_dbt, parameters=constants.DBT_PARAMS.value)
 
 
 _flows = [flow_config(flow=orquestracao_vitacare, schedules=schedules)]
