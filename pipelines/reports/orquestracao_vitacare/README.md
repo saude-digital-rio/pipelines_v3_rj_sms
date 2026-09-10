@@ -10,7 +10,6 @@ O orquestrador (`orquestracao_vitacare`) executa os seguintes flows em sequênci
 2. **Extração: Vitacare Histórico** (`vitacare_historico`): Conecta na instância Cloud SQL via Cloud SQL Proxy e extrai todas as tabelas para o BigQuery (BigLake tables), processando os CNES de forma paralela (limite de concorrência configurável).
 3. **Carregando nas tabelas do BigQuery**: Executa o dbt para materializar as tabelas no BigQuery (tabelas nativas).
 
-
 ## Fluxo dos Dados
 
 ```mermaid
@@ -19,7 +18,7 @@ O orquestrador (`orquestracao_vitacare`) executa os seguintes flows em sequênci
     B --> C[Vitacare Histórico]
     C --> D[dbt run]
     D --> E@{ shape: cyl, label: "Data Lake SMS: brutos_prontuario_vitacare_historico" }
-``` 
+```
 
 ## Agendamentos
 
