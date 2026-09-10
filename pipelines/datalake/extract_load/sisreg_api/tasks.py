@@ -2,6 +2,7 @@
 import os
 import time
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import List, Literal, Optional, Tuple
 from uuid import uuid4
 from zoneinfo import ZoneInfo
@@ -10,10 +11,11 @@ import pandas as pd
 from google.cloud import bigquery, storage
 from prefect import task as unauthenticated_task
 
-from pipelines.utils.cleanup import cleanup_columns_for_bigquery
+from pipelines.utils.cleanup import cleanup_columns_for_bigquery, prettify_byte_size
 from pipelines.utils.datalake import safe_df_to_parquet
 from pipelines.utils.datetime import is_valid_YYYYMMDD, now, now_str, today
 from pipelines.utils.env import get_google_project_for_environment
+from pipelines.utils.io import create_tmp_data_folder
 from pipelines.utils.logger import log
 from pipelines.utils.prefect import authenticated_task as task
 
@@ -236,6 +238,31 @@ def extract_from_api(
   return df
 
 
+@unauthenticated_task()
+def write_partitions_to_disk(df: pd.DataFrame) -> list[tuple[str, str]]:
+  """
+  Agrupa dados de um DataFrame por data_particao, salva cada pedaço
+  como um Parquet, e retorna uma lista de tuplas (data_particao, caminho do Parquet).
+  """
+  root_path = create_tmp_data_folder()
+  all_paths = []
+  for data_particao, partition_df in df.groupby("data_particao"):
+    partition_path = os.path.join(root_path, f"{data_particao}.parquet")
+    all_paths.append(
+      (data_particao, safe_df_to_parquet(partition_df, output_path=partition_path))
+    )
+
+  output = []
+  for path in Path(root_path).iterdir():
+    if path.is_file():
+      output.append(f"{path.name}: {prettify_byte_size(path.stat().st_size)}")
+  log(
+    f"Foram encontradas {len(all_paths)} partições nos dados:\n"
+    + "\n".join(sorted(output))
+  )
+  return all_paths
+
+
 @task()
 def read_partition_from_bigquery(
   dataset_id: str,
@@ -266,7 +293,9 @@ def read_partition_from_bigquery(
   try:
     df = client.query(sql).to_dataframe()
     log(f"[{data_particao}] {len(df)} registros lidos da partição existente.")
-    return safe_df_to_parquet(df)
+    out_path = safe_df_to_parquet(df)
+    del df
+    return out_path
   except Exception as e:
     # A tabela pode ainda não existir na primeira execução
     log(f"[{data_particao}] Não foi possível ler a partição existente: {repr(e)}")
@@ -325,7 +354,7 @@ def delete_partition_files(
 
 
 @unauthenticated_task()
-def merge_partition(old_df_path: str, new_df: pd.DataFrame, data_particao: str) -> str:
+def merge_partition(old_df_path: str, new_df_path: str, data_particao: str) -> str:
   """
   Junta dois DataFrames, deduplicando por `codigo_solicitacao`.
 
@@ -337,27 +366,31 @@ def merge_partition(old_df_path: str, new_df: pd.DataFrame, data_particao: str) 
   Returns
     out(str): Caminho do Parquet combinado
   """
-  new_df = new_df.reset_index(drop=True).astype(str)
 
   if not old_df_path:
-    log(
-      f"[{data_particao}] Nenhum dado já no datalake; {len(new_df)} registros atualizados."
-    )
-    return safe_df_to_parquet(new_df)
+    log(f"[{data_particao}] Nenhum dado já no datalake; fazendo upload de tudo")
+    return new_df_path
 
-  old_df = pd.read_parquet(old_df_path).astype(str)
+  old_df = pd.read_parquet(old_df_path)
   os.remove(old_df_path)
+  new_df = pd.read_parquet(new_df_path)
+  os.remove(new_df_path)
 
   log(
     f"[{data_particao}] {len(old_df)} registros no datalake; {len(new_df)} atualizados."
   )
-  merged_df = (
-    pd.concat([old_df, new_df], ignore_index=True)
-    .drop_duplicates(subset=["codigo_solicitacao"], keep="last")
-    .reset_index(drop=True)
-  )
+  merged_df = pd.concat([old_df, new_df], ignore_index=True)
+  del old_df
+  del new_df
+  merged_df = merged_df.drop_duplicates(
+    subset=["codigo_solicitacao"], keep="last"
+  ).reset_index(drop=True)
+
   log(f"[{data_particao}] Merge concluído; {len(merged_df)} registros no final")
-  return safe_df_to_parquet(merged_df)
+
+  out_path = safe_df_to_parquet(merged_df)
+  del merged_df
+  return out_path
 
 
 @task()
