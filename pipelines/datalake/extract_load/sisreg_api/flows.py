@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import gc
 import os
 from typing import Literal, Optional
 
@@ -18,6 +19,7 @@ from .tasks import (
   gerar_faixas_de_data,
   merge_partition,
   read_partition_from_bigquery,
+  write_partitions_to_disk,
 )
 from .utils import table_name_from_resource
 
@@ -133,8 +135,12 @@ def extract_sisreg_api(
       # Uma forma de diminuir o impacto disso é, ao invés de retornar DataFrames,
       # salvá-los a Parquets e retornar o caminho deles; é o que fazemos abaixo
 
+      paths = write_partitions_to_disk(df)
+      del df
+
       # 2b) Para cada partição presente nos dados novos:
-      for data_particao, partition_df in df.groupby("data_particao"):
+      for data_particao, partition_path in paths:
+        gc.collect()
         # 2b.1) Lê os dados dessa partição já no BigQuery
         existing_df_path = read_partition_from_bigquery(
           dataset_id=dataset_id,
@@ -144,7 +150,9 @@ def extract_sisreg_api(
         )
         # 2b.2) Junta os dados antigos com os dados novos
         merged_df_path = merge_partition(
-          old_df_path=existing_df_path, new_df=partition_df, data_particao=data_particao
+          old_df_path=existing_df_path,
+          new_df_path=partition_path,
+          data_particao=data_particao,
         )
         # 2b.3) Apaga os arquivos antigos da partição antes de reenviar
         # TODO: melhorar, porque se upload_... falha, ficamos sem dados
@@ -157,7 +165,7 @@ def extract_sisreg_api(
         )
         # 2b.4) Reupload dos dados agora atualizados
         upload_df_to_datalake_task(
-          df=pd.read_parquet(merged_df_path).astype(str),
+          df=pd.read_parquet(merged_df_path),
           dataset_id=dataset_id,
           table_id=table_id,
           dump_mode="append",
