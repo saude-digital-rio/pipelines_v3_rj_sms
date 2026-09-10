@@ -73,7 +73,7 @@ def extract_from_api(
   data_inicio: str,
   data_fim: str,
   mode: Literal["extract", "update"],
-):
+) -> str:
   """
   Extrai dados do SISREG via API do ElasticSearch,
   considerando apenas o intervalo [data_inicial, data_final].
@@ -174,7 +174,7 @@ def extract_from_api(
 
       if total_registros == 0 or not hits:
         log(f"[{data_inicio} : {data_fim}] Nenhum registro no intervalo.")
-        return None
+        return ""
       log(
         f"[{data_inicio} : {data_fim}] Total de registros encontrados: {total_registros}"
       )
@@ -235,22 +235,26 @@ def extract_from_api(
   df = cleanup_columns_for_bigquery(df, lowercase=True)
   df["_run_id"] = str(uuid4())
   df["_extracted_at"] = now_str()
-  return df
+  return safe_df_to_parquet(df)
 
 
 @unauthenticated_task()
-def write_partitions_to_disk(df: pd.DataFrame) -> list[tuple[str, str]]:
+def write_partitions_to_disk(df_path: str) -> list[tuple[str, str]]:
   """
   Agrupa dados de um DataFrame por data_particao, salva cada pedaço
   como um Parquet, e retorna uma lista de tuplas (data_particao, caminho do Parquet).
   """
   root_path = create_tmp_data_folder()
   all_paths = []
-  for data_particao, partition_df in df.groupby("data_particao"):
+  dataframes = pd.read_parquet(df_path).groupby("data_particao")
+  os.remove(df_path)
+
+  for data_particao, partition_df in dataframes:
     partition_path = os.path.join(root_path, f"{data_particao}.parquet")
     all_paths.append(
       (data_particao, safe_df_to_parquet(partition_df, output_path=partition_path))
     )
+  del dataframes
 
   output = []
   for path in Path(root_path).iterdir():

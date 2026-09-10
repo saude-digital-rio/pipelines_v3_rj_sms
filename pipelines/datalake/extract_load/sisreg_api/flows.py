@@ -104,7 +104,7 @@ def extract_sisreg_api(
 
   for inicio, fim in faixas:
     # 1) Extrai lote a lote, retorna dados em dataframe
-    df: pd.DataFrame = extract_from_api(
+    df_path: str = extract_from_api(
       user=username,
       password=password,
       index_name=es_index,
@@ -113,7 +113,7 @@ def extract_sisreg_api(
       data_fim=fim,
       mode=mode,
     )
-    if df is None or df.empty:
+    if not df_path:
       continue
 
     if mode == "extract":
@@ -121,7 +121,7 @@ def extract_sisreg_api(
       # Como extraímos o mês inteiro, vamos ter um substituto completo dos
       # dados já presentes, então dados antigos são excluídos no fim do flow
       upload_df_to_datalake_task(
-        df=df,
+        df=pd.read_parquet(df_path),
         dataset_id=dataset_id,
         table_id=table_id,
         dump_mode="append",
@@ -134,10 +134,7 @@ def extract_sisreg_api(
       # para, caso uma task falhe, ela possa ser retentada com os mesmos valores
       # Uma forma de diminuir o impacto disso é, ao invés de retornar DataFrames,
       # salvá-los a Parquets e retornar o caminho deles; é o que fazemos abaixo
-
-      paths = write_partitions_to_disk(df)
-      del df
-
+      paths = write_partitions_to_disk(df_path)
       # 2b) Para cada partição presente nos dados novos:
       for data_particao, partition_path in paths:
         gc.collect()
