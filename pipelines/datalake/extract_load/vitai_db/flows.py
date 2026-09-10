@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from typing import Literal, Optional
+
 from prefect.concurrency.sync import rate_limit
 from prefect.futures import wait
 
@@ -33,16 +35,17 @@ def clear_vitai_db_limit(*args, **kwargs):
   on_cancellation=[clear_vitai_db_limit],
 )
 def vitai_db_extraction(
-  environment: str = "dev",
+  environment: Literal["dev", "prod"] = "dev",
   table_name: str = "",
   schema_name: str = "basecentral",
   datetime_column: str = "datahora",
   target_name: str = "",
   partition_column: str = "datalake_loaded_at",
   batch_size: int = 10000,
-  interval_start: str = None,
-  interval_end: str = None,
-  relative_date: str = None,
+  interval_start: Optional[str] = "",
+  interval_end: Optional[str] = "",
+  relative_date: Optional[str] = "",
+  dataset_id: str = "brutos_prontuario_vitai",
 ):
   """
   Fluxo de extração e carga de dados do prontuário Vitai.
@@ -57,6 +60,7 @@ def vitai_db_extraction(
       batch_size: Tamanho do lote de extração
       interval_start: Início do intervalo. Padrão: 7 dias atrás.
       interval_end: Fim do intervalo. Padrão: Agora.
+      dataset_id: ID do dataset no BigQuery
   """
   rename_flow_run(
     new_name=f"{relative_date}: '{schema_name}.{table_name}' -> '{target_name}'"
@@ -98,7 +102,7 @@ def vitai_db_extraction(
     upload_futures.append(
       upload_df_to_datalake_task.submit(
         df=df,
-        dataset_id=flow_constants.DATASET_NAME.value,
+        dataset_id=dataset_id,
         table_id=target_name,
         dump_mode="append",
         source_format="parquet",
