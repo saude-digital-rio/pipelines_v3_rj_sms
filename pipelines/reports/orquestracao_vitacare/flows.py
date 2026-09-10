@@ -59,7 +59,7 @@ def orquestracao_vitacare(
       next_date = today + timedelta(days=i)
       next_schedule = datetime.combine(next_date, time(hour=1, tzinfo=SAO_PAULO_TZ))
 
-      create_flow_run.run(
+      create_flow_run(
         flow=orquestracao_vitacare,
         parameters={"environment": "prod", "should_repeat": False},
         environment=environment,
