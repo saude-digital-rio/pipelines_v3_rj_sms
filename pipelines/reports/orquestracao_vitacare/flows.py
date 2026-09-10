@@ -4,6 +4,11 @@ from typing import Literal
 from pipelines.constants import CIT
 from pipelines.datalake.transform.dbt.flows import sms_execute_dbt
 from pipelines.utils.prefect import create_flow_run, flow, flow_config
+
+from .constants import constants
+from .schedules import schedules
+from .tasks import schedule_next_runs
+
 # from pipelines.datalake.extract_load.vitacare_historico.flows import vitacare_historico
 # from pipelines.datalake.migrate.gdrive_to_gcs.flows import gdrive_to_gcs
 # from pipelines.datalake.migrate.sqlserver_backup.flows import sqlserver_backup
@@ -13,10 +18,6 @@ from pipelines.utils.prefect import create_flow_run, flow, flow_config
 #   flow_config,
 #   wait_for_flow_run_task,
 # )
-
-from .constants import constants
-from .schedules import schedules
-from .tasks import schedule_next_runs
 
 
 @flow(
@@ -36,7 +37,7 @@ def orquestracao_vitacare(
       Flag que indica se o flow deve se repetir para os próximos dias (5 dia).
   """
 
-  #environment_params = {"environment": environment}
+  # environment_params = {"environment": environment}
   if should_repeat:
     schedule_next_runs(environment=environment)
 
@@ -70,7 +71,7 @@ def orquestracao_vitacare(
 
   # 4. Executa o dbt run com -s tag:vitacare_historico
   dbt_params = constants.DBT_PARAMS.value
-  dbt_params.update({'environment': environment})
+  dbt_params.update({"environment": environment})
   create_flow_run(flow=sms_execute_dbt, parameters=dbt_params)
 
 

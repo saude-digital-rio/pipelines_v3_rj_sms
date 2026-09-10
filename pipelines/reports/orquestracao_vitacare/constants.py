@@ -27,4 +27,3 @@ class constants(Enum):
     "select": "tag:vitacare_historico",
     "send_discord_report": True,
   }
-  
