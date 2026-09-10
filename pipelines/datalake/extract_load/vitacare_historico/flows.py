@@ -77,7 +77,7 @@ def vitacare_historico_cnes(
 @flow(
   name="Extração: Vitacare Histórico",
   state_handlers=[handle_flow_state_change],
-  owners=[CIT.DANIEL_ID.value],
+  owners=[CIT.HERIAN_ID.value],
   tags=["CIT"],
 )
 def vitacare_historico(
@@ -178,7 +178,6 @@ _flows = [
   ),
   flow_config(
     flow=vitacare_historico,
-    schedules=schedules,
     dockerfile="./pipelines/datalake/extract_load/vitacare_historico/Dockerfile",
     memory="small",
   ),

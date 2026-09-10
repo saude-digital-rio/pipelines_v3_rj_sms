@@ -23,7 +23,7 @@ from .tasks import (
     "Restaura backups de SQL Server (.BAK), guardados em um bucket do GCS, "
     "para uma instância Cloud SQL"
   ),
-  owners=[CIT.DANIEL_ID.value],
+  owners=[CIT.HERIAN_ID.value],
   tags=["CIT"],
 )
 def sqlserver_backup(

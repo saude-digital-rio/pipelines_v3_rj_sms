@@ -10,6 +10,8 @@ from pipelines.utils.prefect import create_flow_run
 def schedule_next_runs(environment: str):
   """
   Agenda o orquestrador para os próximos 5 dias.
+  Isso é necessário pois a Vitacare começa a colocar os backups das unidades 
+  no primeiro domingo de cada mês, mas isso pode durar mais de um dia.
   """
   from .flows import orquestracao_vitacare
 
