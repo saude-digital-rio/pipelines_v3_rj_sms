@@ -8,7 +8,7 @@ class constants(Enum):
     "backup_type": "vitacare_historic",
     "bucket_name": "rj_subpav_vitacare_backups",
     "instance_name": "vitacare",
-    "file_pattern": "HISTÓRICO_PEPVITA_RJ/AP*/vitacare_historic_*_*_*.bak",
+    "file_pattern": "vitacare_historic_*_*_*.bak",
   }
 
   # Parâmetros do dbt run
