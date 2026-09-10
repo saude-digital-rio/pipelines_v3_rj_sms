@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from pipelines.utils.schedules import create_schedule
 from prefect.schedules import Cron
 
+
 schedules = [
-    Cron(
-        "0 16 * * 0#1", # 16:00, primeiro domingo do mês
-        timezone="America/Sao_Paulo",
-        parameters={"environment": "prod", "should_repeat": True},
-    ),
+  Cron(
+    "0 16 * * 0#1",  # 16:00, primeiro domingo do mês
+    timezone="America/Sao_Paulo",
+    parameters={"environment": "prod", "should_repeat": True},
+  )
 ]
 
 # schedules = [
@@ -17,4 +17,3 @@ schedules = [
 #     config={"day": 7, "hour": 16, "minute": 0},
 #   ),
 # ]
-
