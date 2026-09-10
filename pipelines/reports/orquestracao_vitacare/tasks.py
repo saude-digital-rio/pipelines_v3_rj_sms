@@ -2,10 +2,9 @@ from datetime import datetime, time, timedelta
 
 from prefect import task
 
+from pipelines.reports.orquestracao_vitacare import orquestracao_vitacare
 from pipelines.utils.datetime import SAO_PAULO_TZ, now
 from pipelines.utils.prefect import create_flow_run
-
-from pipelines.reports.orquestracao_vitacare import orquestracao_vitacare
 
 
 @task
