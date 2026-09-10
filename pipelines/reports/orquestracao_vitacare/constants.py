@@ -3,8 +3,6 @@ from enum import Enum
 
 
 class constants(Enum):
-  # TODO: Alterar environment para "prod" após aprovação dos testes
-
   # Parâmetros para gdrive_to_gcs (vitacare_historico)
   GDRIVE_TO_GCS_PARAMS = {
     "root_folder_id": "1VUdm8fixnUs_dJrcflsNvzXIGPX6e-2r",
@@ -26,3 +24,12 @@ class constants(Enum):
 
   # Parâmetros para vitacare_historico
   VITACARE_HISTORICO_PARAMS = {"environment": "prod"}
+
+  # Parâmetros do dbt run
+  DBT_PARAMS = {
+    "command": "run",
+    "environment": "prod",
+    "rename_flow": True,
+    "select": "tag:vitacare_historico",
+    "send_discord_report": True
+  },
