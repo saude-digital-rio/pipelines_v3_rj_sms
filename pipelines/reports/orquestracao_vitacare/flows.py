@@ -42,9 +42,7 @@ def orquestracao_vitacare(
   sqlserver_backup_params = constants.SQLSERVER_BACKUP_PARAMS.value
   sqlserver_backup_params.update(environment_params)
   fr_sqlserver = create_flow_run(
-    flow=sqlserver_backup,
-    parameters=sqlserver_backup_params,
-    environment=environment,
+    flow=sqlserver_backup, parameters=sqlserver_backup_params, environment=environment
   )
   wait_for_flow_run_task(flow_run_id=fr_sqlserver.id)
 
