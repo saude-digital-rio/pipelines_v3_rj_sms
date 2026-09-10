@@ -1,6 +1,8 @@
-from prefect import task
 from datetime import datetime, time, timedelta
-from pipelines.utils.datetime import now, SAO_PAULO_TZ
+
+from prefect import task
+
+from pipelines.utils.datetime import SAO_PAULO_TZ, now
 from pipelines.utils.prefect import create_flow_run
 
 from .flows import orquestracao_vitacare

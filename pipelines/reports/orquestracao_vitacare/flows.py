@@ -1,25 +1,14 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime, time, timedelta
 from typing import Literal
 
-from prefect import task
 
 from pipelines.constants import CIT
-from pipelines.datalake.extract_load.vitacare_historico.flows import vitacare_historico
-from pipelines.datalake.migrate.gdrive_to_gcs.flows import gdrive_to_gcs
-from pipelines.datalake.migrate.sqlserver_backup.flows import sqlserver_backup
 from pipelines.datalake.transform.dbt.flows import sms_execute_dbt
-from pipelines.utils.datetime import SAO_PAULO_TZ, now
-from pipelines.utils.prefect import (
-  create_flow_run,
-  flow,
-  flow_config,
-  wait_for_flow_run_task,
-)
+from pipelines.utils.prefect import create_flow_run, flow, flow_config
 
 from .constants import constants
-from .tasks import schedule_next_runs
 from .schedules import schedules
+from .tasks import schedule_next_runs
 
 
 @flow(
@@ -42,7 +31,7 @@ def orquestracao_vitacare(
   if should_repeat:
     schedule_next_runs(environment=environment)
 
-  # TODO: Descomentar antes de subir para prod 
+  # TODO: Descomentar antes de subir para prod
   # # 1. gdrive_to_gcs
   # fr_gdrive = create_flow_run(
   #   flow=gdrive_to_gcs,
@@ -68,10 +57,7 @@ def orquestracao_vitacare(
   # wait_for_flow_run_task(flow_run_id=fr_vitacare.id)
 
   # 4. Executa o dbt run com -s tag:vitacare_historico
-  fr_dbt = create_flow_run(
-    flow=sms_execute_dbt,
-    parameters=constants.DBT_PARAMS.value
+  fr_dbt = create_flow_run(flow=sms_execute_dbt, parameters=constants.DBT_PARAMS.value)
 
-  )
 
 _flows = [flow_config(flow=orquestracao_vitacare, schedules=schedules)]

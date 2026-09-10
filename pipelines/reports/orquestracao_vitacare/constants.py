@@ -26,10 +26,12 @@ class constants(Enum):
   VITACARE_HISTORICO_PARAMS = {"environment": "prod"}
 
   # Parâmetros do dbt run
-  DBT_PARAMS = {
-    "command": "run",
-    "environment": "prod",
-    "rename_flow": True,
-    "select": "tag:vitacare_historico",
-    "send_discord_report": True
-  },
+  DBT_PARAMS = (
+    {
+      "command": "run",
+      "environment": "prod",
+      "rename_flow": True,
+      "select": "tag:vitacare_historico",
+      "send_discord_report": True,
+    },
+  )
