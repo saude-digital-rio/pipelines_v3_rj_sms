@@ -9,7 +9,6 @@ from pipelines.utils.prefect import create_flow_run, flow, flow_config, rename_f
 from pipelines.utils.state_handlers import handle_flow_state_change
 
 from .constants import vitacare_constants
-from .schedules import schedules
 from .tasks import (
   extract_table_to_bigquery,
   get_cnes_from_bigquery,

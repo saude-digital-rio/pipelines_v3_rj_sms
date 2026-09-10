@@ -2,11 +2,9 @@
 from typing import Literal
 
 from pipelines.constants import CIT
-from pipelines.datalake.transform.dbt.flows import sms_execute_dbt
-from pipelines.utils.prefect import create_flow_run, flow, flow_config
 from pipelines.datalake.extract_load.vitacare_historico.flows import vitacare_historico
-from pipelines.datalake.migrate.gdrive_to_gcs.flows import gdrive_to_gcs
 from pipelines.datalake.migrate.sqlserver_backup.flows import sqlserver_backup
+from pipelines.datalake.transform.dbt.flows import sms_execute_dbt
 from pipelines.utils.prefect import (
   create_flow_run,
   flow,
@@ -17,8 +15,6 @@ from pipelines.utils.prefect import (
 from .constants import constants
 from .schedules import schedules
 from .tasks import schedule_next_runs
-
-
 
 
 @flow(
@@ -54,9 +50,7 @@ def orquestracao_vitacare(
 
   # 2. vitacare_historico
   fr_vitacare = create_flow_run(
-    flow=vitacare_historico,
-    parameters=environment_params,
-    environment=environment,
+    flow=vitacare_historico, parameters=environment_params, environment=environment
   )
   wait_for_flow_run_task(flow_run_id=fr_vitacare.id)
 

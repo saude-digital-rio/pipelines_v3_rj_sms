@@ -9,7 +9,7 @@ flow_parameters = [
     "instance_name": "vitacare",
     "file_pattern": "RNDS_Vaccine_Historic_*.bak",
     "environment": "prod",
-  },
+  }
 ]
 
 schedules = [
