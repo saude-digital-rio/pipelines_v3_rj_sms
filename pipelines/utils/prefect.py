@@ -3,9 +3,10 @@ import asyncio
 import re
 import time
 import unicodedata
+
+from datetime import datetime
 from typing import Any, Callable, Dict, List, Literal, Optional, Type, Union
 from uuid import UUID
-
 from prefect import State, Task, get_client
 from prefect.client.schemas import FlowRun, StateType
 from prefect.client.schemas.actions import GlobalConcurrencyLimitUpdate
@@ -184,6 +185,7 @@ def create_flow_run(
   wait: bool = False,
   environment: str | None = None,
   flow_run_name: str = None,
+  scheduled_time: datetime | None = None
 ):
   """
   Cria uma nova flow run de um determinado flow.
@@ -211,6 +213,7 @@ def create_flow_run(
     parameters=parameters,
     timeout=(0 if not wait else None),
     as_subflow=False,  # tenho recebido erro 422 sem isso aqui --Avellar
+    scheduled_time=scheduled_time
   )
   base_url = get_prefect_url()
   log(
