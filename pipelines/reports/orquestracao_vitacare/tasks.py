@@ -5,7 +5,7 @@ from prefect import task
 from pipelines.utils.datetime import SAO_PAULO_TZ, now
 from pipelines.utils.prefect import create_flow_run
 
-from .flows import orquestracao_vitacare
+from pipelines.reports.orquestracao_vitacare import orquestracao_vitacare
 
 
 @task

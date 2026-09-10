@@ -13,7 +13,7 @@ from .tasks import schedule_next_runs
 @flow(
   name="Orquestração: Vitacare Histórico",
   description="Executa sequencialmente: gdrive_to_gcs → sqlserver_backup → vitacare_historico",
-  owners=[CIT.DANIEL_ID.value],
+  owners=[CIT.HERIAN_ID.value],
   tags=["CIT"],
 )
 def orquestracao_vitacare(
