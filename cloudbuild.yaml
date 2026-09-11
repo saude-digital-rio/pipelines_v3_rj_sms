@@ -1,4 +1,41 @@
 steps:
-  - name: 'ubuntu'
+  # Busca secrets do Secret Manager usando os caminhos definidos nas variáveis do Trigger
+  - name: 'google/cloud-sdk'
     entrypoint: 'bash'
-    args: ['echo', 'Hello, World!']
+    args:
+      - '-c'
+      - |
+        set -e
+
+        gcloud secrets versions access latest --secret="$_SECRET_GOOGLE_CREDENTIALS"   > /workspace/secret_google_credentials
+        gcloud secrets versions access latest --secret="$_SECRET_INFISICAL_ADDRESS"    > /workspace/secret_infisical_address
+        gcloud secrets versions access latest --secret="$_SECRET_INFISICAL_PROJECT_ID" > /workspace/secret_infisical_project_id
+        gcloud secrets versions access latest --secret="$_SECRET_INFISICAL_TOKEN"      > /workspace/secret_infisical_token
+        gcloud secrets versions access latest --secret="$_SECRET_PAT_QUERIES"          > /workspace/secret_pat_queries
+        gcloud secrets versions access latest --secret="$_SECRET_PREFECT_API_KEY"      > /workspace/secret_prefect_api_key
+        gcloud secrets versions access latest --secret="$_SECRET_PREFECT_API_URL"      > /workspace/secret_prefect_api_url
+        gcloud secrets versions access latest --secret="$_SECRET_PREFECT_WS_AUTH"      > /workspace/secret_prefect_ws_auth
+
+  # Executa o deploy dos flows Prefect com as variáveis exportadas para o processo
+  - name: 'python:3.13'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+
+        export GOOGLE_CREDENTIALS=$(cat /workspace/secret_google_credentials)
+        export INFISICAL_ADDRESS=$(cat /workspace/secret_infisical_address)
+        export INFISICAL_PROJECT_ID=$(cat /workspace/secret_infisical_project_id)
+        export INFISICAL_TOKEN=$(cat /workspace/secret_infisical_token)
+        export PAT_QUERIES=$(cat /workspace/secret_pat_queries)
+        export PREFECT_API_KEY=$(cat /workspace/secret_prefect_api_key)
+        export PREFECT_API_URL=$(cat /workspace/secret_prefect_api_url)
+        export PREFECT_WS_AUTH=$(cat /workspace/secret_prefect_ws_auth)
+
+  #      pip install uv --quiet
+  #      uv sync --all-packages
+  #      uv run python .github/scripts/deploy_prefect_flows.py
+
+options:
+  logging: CLOUD_LOGGING_ONLY
