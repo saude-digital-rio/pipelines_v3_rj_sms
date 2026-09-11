@@ -15,9 +15,20 @@ O orquestrador (`orquestracao_vitacare`) executa os seguintes flows em sequênci
 ```mermaid
     flowchart LR
     A@{ shape: lin-cyl, label: "Cloud Storage: rj_subpav_vitacare_backups" } --> B[Backup SQL Server]
+
     B --> C[Vitacare Histórico]
-    C --> D[dbt run]
-    D --> E@{ shape: cyl, label: "Data Lake SMS: brutos_prontuario_vitacare_historico" }
+    
+    C --> D[Vitacare Histórico CNES: XXXXX1]
+    C --> E[Vitacare Histórico CNES: XXXXX2]
+    C --> F[Vitacare Histórico CNES: XXXXX3]
+    
+    D --> G@{ shape: cyl, label: "brutos_prontuario_vitacare_historico_staging" }
+    E --> G
+    F --> G
+
+    G --> H[flow dbt]
+
+    H --> I@{ shape: cyl, label: "Data Lake SMS: brutos_prontuario_vitacare_historico" }
 ```
 
 ## Agendamentos
