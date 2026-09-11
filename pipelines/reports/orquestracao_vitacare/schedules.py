@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
-from pipelines.utils.schedules import create_schedule
+from prefect.schedules import Cron
 
 schedules = [
-  create_schedule(
-    parameters={"environment": "prod"},
-    interval="monthly",
-    config={"day": 7, "hour": 16, "minute": 0},
-  ),
-  # FIXME: schedule de teste; remover
-  create_schedule(
-    parameters={"environment": "prod"},
-    interval="monthly",
-    config={"day": 29, "hour": 16, "minute": 0},
-  ),
+  Cron(
+    "0 16 * * 0#1",  # 16:00, primeiro domingo do mês
+    timezone="America/Sao_Paulo",
+    parameters={"environment": "prod", "should_repeat": True},
+  )
 ]
+
+# schedules = [
+#   create_schedule(
+#     parameters={"environment": "prod"},
+#     interval="monthly",
+#     config={"day": 7, "hour": 16, "minute": 0},
+#   ),
+# ]

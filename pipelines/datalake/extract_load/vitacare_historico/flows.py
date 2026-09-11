@@ -9,7 +9,6 @@ from pipelines.utils.prefect import create_flow_run, flow, flow_config, rename_f
 from pipelines.utils.state_handlers import handle_flow_state_change
 
 from .constants import vitacare_constants
-from .schedules import schedules
 from .tasks import (
   extract_table_to_bigquery,
   get_cnes_from_bigquery,
@@ -77,7 +76,7 @@ def vitacare_historico_cnes(
 @flow(
   name="Extração: Vitacare Histórico",
   state_handlers=[handle_flow_state_change],
-  owners=[CIT.DANIEL_ID.value],
+  owners=[CIT.HERIAN_ID.value],
   tags=["CIT"],
 )
 def vitacare_historico(
@@ -178,7 +177,6 @@ _flows = [
   ),
   flow_config(
     flow=vitacare_historico,
-    schedules=schedules,
     dockerfile="./pipelines/datalake/extract_load/vitacare_historico/Dockerfile",
     memory="small",
   ),
