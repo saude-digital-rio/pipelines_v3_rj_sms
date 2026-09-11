@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 
 from pipelines.constants import CIT
 from pipelines.utils.git import download_gh_repo_task
@@ -41,7 +42,10 @@ def sms_execute_dbt(
 
   # Baixa o código atual do repositório
   repo_path = download_gh_repo_task(
-    repo="prefeitura-rio/queries-rj-sms", branch="master", if_destination_exists="delete"
+    repo="prefeitura-rio/queries-rj-sms",
+    branch="master",
+    if_destination_exists="delete",
+    token=os.getenv("PAT_QUERIES"),
   )
 
   fixed_target = get_dbt_target_from_environment(

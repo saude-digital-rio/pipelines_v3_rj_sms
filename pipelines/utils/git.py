@@ -17,6 +17,7 @@ def download_gh_repo(
   destination_path: str = None,
   if_destination_exists: Literal["delete", "raise"] = "raise",
   repository_folder: str = None,
+  token: str = None,
 ) -> str:
   """
   Baixa o conteúdo de um repositório no GitHub para uma pasta local.
@@ -37,6 +38,9 @@ def download_gh_repo(
     repository_folder (str?):
       Pasta no repositório de onde buscar o conteúdo.
       Se não for informado, o repositório inteiro é copiado.
+    token (str?):
+      Personal Access Token (PAT) do GitHub para repositórios privados.
+      Se não informado, o repositório é acessado publicamente.
 
   Returns:
     path (str): Caminho onde o repositório baixado está.
@@ -72,8 +76,11 @@ def download_gh_repo(
   os.makedirs(destination_path)
 
   tar_filename = os.path.join(destination_path, f"repo-{branch}.tar.gz")
+  headers = {"Authorization": f"token {token}"} if token else {}
   req = requests.get(
-    f"https://github.com/{repo}/archive/refs/heads/{branch}.tar.gz", stream=True
+    f"https://github.com/{repo}/archive/refs/heads/{branch}.tar.gz",
+    headers=headers,
+    stream=True,
   )
   with open(tar_filename, "wb") as fd:
     for chunk in req.iter_content(chunk_size=None):
@@ -109,6 +116,7 @@ def download_gh_repo_task(
   destination_path: str = None,
   if_destination_exists: Literal["delete", "raise"] = "raise",
   repository_folder: str = None,
+  token: str = None,
 ) -> str:
   """
   Baixa o conteúdo de um repositório no GitHub para uma pasta local.
@@ -129,6 +137,9 @@ def download_gh_repo_task(
     repository_folder (str?):
       Pasta no repositório de onde buscar o conteúdo.
       Se não for informado, o repositório inteiro é copiado.
+    token (str?):
+      Personal Access Token (PAT) do GitHub para repositórios privados.
+      Se não informado, o repositório é acessado publicamente.
 
   Returns:
     path (str): Caminho onde o repositório baixado está.
@@ -139,4 +150,5 @@ def download_gh_repo_task(
     destination_path=destination_path,
     if_destination_exists=if_destination_exists,
     repository_folder=repository_folder,
+    token=token,
   )
