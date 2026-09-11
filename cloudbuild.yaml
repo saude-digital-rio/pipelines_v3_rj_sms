@@ -7,21 +7,13 @@ steps:
       - |
         set -e
 
-        echo "Buscando secret: $_SECRET_GOOGLE_CREDENTIALS"
         gcloud secrets versions access latest --secret="$_SECRET_GOOGLE_CREDENTIALS"   > /workspace/secret_google_credentials
-        echo "Buscando secret: $_SECRET_INFISICAL_ADDRESS"
         gcloud secrets versions access latest --secret="$_SECRET_INFISICAL_ADDRESS"    > /workspace/secret_infisical_address
-        echo "Buscando secret: $_SECRET_INFISICAL_PROJECT_ID"
         gcloud secrets versions access latest --secret="$_SECRET_INFISICAL_PROJECT_ID" > /workspace/secret_infisical_project_id
-        echo "Buscando secret: $_SECRET_INFISICAL_TOKEN"
         gcloud secrets versions access latest --secret="$_SECRET_INFISICAL_TOKEN"      > /workspace/secret_infisical_token
-        echo "Buscando secret: $_SECRET_PAT_QUERIES"
         gcloud secrets versions access latest --secret="$_SECRET_PAT_QUERIES"          > /workspace/secret_pat_queries
-        echo "Buscando secret: $_SECRET_PREFECT_API_KEY"
         gcloud secrets versions access latest --secret="$_SECRET_PREFECT_API_KEY"      > /workspace/secret_prefect_api_key
-        echo "Buscando secret: $_SECRET_PREFECT_API_URL"
         gcloud secrets versions access latest --secret="$_SECRET_PREFECT_API_URL"      > /workspace/secret_prefect_api_url
-        echo "Buscando secret: $_SECRET_PREFECT_WS_AUTH"
         gcloud secrets versions access latest --secret="$_SECRET_PREFECT_WS_AUTH"      > /workspace/secret_prefect_ws_auth
 
   # Executa o deploy dos flows Prefect com as variáveis exportadas para o processo
