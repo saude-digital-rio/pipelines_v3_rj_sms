@@ -65,6 +65,6 @@ def extract_gcs_csv(
     if local_csv_path and os.path.exists(local_csv_path):
         try:
             os.remove(local_csv_path) 
-            log(f"Limpeza concluida. Arquivo temporário removido.")
+            log("Limpeza concluida. Arquivo temporário removido.")
         except Exception as error:
                 log(f"Aviso ao tentar remover arquivo temporário: {error}", level="Warning")
