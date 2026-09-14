@@ -37,7 +37,7 @@ def normalize_dates(
     dt_inicio = (
       # Quando consultando por data de criação, queremos a(s) partição(ões)
       # que inclui(em) os dias desejados
-      (dt_fim - timedelta(days=flow_consts.DEFAULT_WINDOW_DAYS.value - 1)).replace(day=1)
+      (dt_fim.replace(year=dt_fim.year - 1, day=1))
       if mode == "extract"
       # Caso contrário, consultando por data de atualização, queremos
       # somente os N dias mesmo
