@@ -26,7 +26,7 @@ from .tasks import (
   name="Extração: Vitacare Histórico - CNES",
   state_handlers=[handle_flow_state_change],
   owners=[CIT.DANIEL_ID.value],
-  timeout_seconds=900, # Algumas flow runs podem ficar "congeladas" por horas
+  timeout_seconds=900,  # Algumas flow runs podem ficar "congeladas" por horas
 )
 def vitacare_historico_cnes(
   environment: str = "dev",
