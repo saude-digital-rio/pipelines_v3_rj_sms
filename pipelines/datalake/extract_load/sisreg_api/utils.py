@@ -126,6 +126,6 @@ def handle_task_state_change(task: Task, task_run, state: State):
     "\n======== RAM ========\n"
     f"{snapshot['used_pretty']} / "
     f"{snapshot['total_pretty']} "
-    f"({snapshot['used_pct']:.2f})"
+    f"({snapshot['used_pct']:.2f}%)"
     "\n====================="
   )
