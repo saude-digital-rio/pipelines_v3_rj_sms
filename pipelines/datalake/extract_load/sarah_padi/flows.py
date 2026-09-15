@@ -18,7 +18,7 @@ table_names = TABLES.keys()
 
 @flow(name="Extração: SARAH PADI", owners=[CIT.HERIAN_ID.value], tags=["CIT"])
 def padi_extraction(
-  table: Literal[tuple(table_names)],
+  table: Literal[tuple(table_names)],  # type: ignore
   date: Optional[str],
   dataset_id: str = "brutos_prontuario_sarah_padi",
   environment: Literal["dev", "prod"] = "dev",

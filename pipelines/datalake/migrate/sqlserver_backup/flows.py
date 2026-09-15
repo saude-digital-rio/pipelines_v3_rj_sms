@@ -23,7 +23,7 @@ from .tasks import (
     "Restaura backups de SQL Server (.BAK), guardados em um bucket do GCS, "
     "para uma instância Cloud SQL"
   ),
-  owners=[CIT.DANIEL_ID.value],
+  owners=[CIT.HERIAN_ID.value],
   tags=["CIT"],
 )
 def sqlserver_backup(
@@ -55,8 +55,9 @@ def sqlserver_backup(
 
     instance_started = True
     start_instance(instance_name=instance_name)
-
-    for restore_item in restore_plan:
+    restore_plan_len = len(restore_plan)
+    for i, restore_item in enumerate(restore_plan):
+      log(f"Backup {i}/{restore_plan_len}")
       result = restore_backup(restore_item=restore_item, instance_name=instance_name)
       results.append(result)
 

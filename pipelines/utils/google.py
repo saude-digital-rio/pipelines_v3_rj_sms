@@ -618,6 +618,35 @@ def get_instance_status(instance_name: str) -> dict:
   return status
 
 
+def wait_for_instance_runnable(
+  instance_name: str, max_attempts: int = 20, sleep_seconds: int = 15
+) -> None:
+  """
+  Aguarda até que a instância Cloud SQL esteja no estado RUNNABLE.
+
+  Args:
+    instance_name (str): Nome da instância Cloud SQL.
+    max_attempts (int, optional): Número máximo de tentativas de polling.
+    sleep_seconds (int, optional): Intervalo em segundos entre tentativas.
+  """
+  for attempt in range(1, max_attempts + 1):
+    status = get_instance_status(instance_name)
+    if status["state"] == "RUNNABLE":
+      return
+    log(
+      f"(wait_for_instance_runnable) instância '{instance_name}' em "
+      f"'{status['state']}', aguardando... ({attempt}/{max_attempts})"
+    )
+    if attempt < max_attempts:
+      time.sleep(sleep_seconds)
+
+  log(
+    f"(wait_for_instance_runnable) instância '{instance_name}' não ficou "
+    f"RUNNABLE após {max_attempts} tentativas",
+    level="warning",
+  )
+
+
 def ensure_instance_running(instance_name: str) -> None:
   """
   Garante que uma instância Cloud SQL esteja ligada.
@@ -645,7 +674,7 @@ def ensure_instance_running(instance_name: str) -> None:
     },
   )
   wait_for_operations(instance_name)
-  get_instance_status(instance_name)
+  wait_for_instance_runnable(instance_name)
 
 
 def ensure_instance_stopped(instance_name: str) -> None:
