@@ -65,6 +65,15 @@ daily_flow_parameters = [
     "destination_dataset_name": "brutos_sigma_staging",
     "environment": "prod",
   },
+  {
+    "source_project_name": "iplan-rio-sms",
+    "source_dataset_name": "billing",
+    "source_table_list": [
+      "gcp_billing_export_resource_v1_01BAED_6E64B4_606041"
+    ],
+    "destination_dataset_name": "brutos_faturamento_nuvem_staging",
+    "environment": "prod",
+  }
 ]
 
 weekly_flow_parameters = [
