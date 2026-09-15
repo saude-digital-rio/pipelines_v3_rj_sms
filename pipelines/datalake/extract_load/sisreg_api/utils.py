@@ -3,10 +3,12 @@ from datetime import date, datetime, timedelta
 from typing import Literal, Optional, Tuple
 
 from elasticsearch import Elasticsearch, exceptions
+from prefect import State, Task
 
 from pipelines.utils.cleanup import cleanup_bigquery_name
 from pipelines.utils.datetime import parse_date_or_today
 from pipelines.utils.logger import log
+from pipelines.utils.monitor import get_ram_snapshot
 
 from .constants import constants as flow_consts
 
@@ -116,3 +118,14 @@ def table_name_from_resource(resource: str) -> str:
   if resource.startswith("solicitacao") or resource.startswith("marcacao"):
     return cleanup_bigquery_name(resource, lowercase=True)
   raise NotImplementedError(f"Não há tabela definida por padrão para '{resource}'")
+
+
+def handle_task_state_change(task: Task, task_run, state: State):
+  snapshot = get_ram_snapshot()
+  log(
+    "\n======== RAM ========\n"
+    f"{snapshot['used_pretty']} / "
+    f"{snapshot['total_pretty']} "
+    f"({snapshot['used_pct']:.2f})"
+    "\n====================="
+  )
