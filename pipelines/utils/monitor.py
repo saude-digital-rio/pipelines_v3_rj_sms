@@ -7,6 +7,7 @@ import aiohttp
 from discord import AllowedMentions, Embed, File, Webhook
 from prefect.context import FlowRunContext, TaskRunContext
 
+from pipelines.utils.cleanup import prettify_byte_size
 from pipelines.utils.env import get_current_environment, get_prefect_url
 from pipelines.utils.infisical import get_secret
 from pipelines.utils.logger import log
@@ -219,3 +220,33 @@ def send_discord_message(
         await send_discord_webhook(slug=slug, text_content=content)
 
   asyncio.run(send_multiple_discord_messages(pages))
+
+
+def get_ram_snapshot():
+  meminfo = {}
+  with open("/proc/meminfo", "r") as f:
+    for line in f:
+      # Só temos interesse em ler RAM total e disponível
+      if "MemTotal" in meminfo and "MemAvailable" in meminfo:
+        break
+
+      line: str
+      parts = line.split()
+      key = parts[0].replace(":", "")
+      if key not in ("MemTotal", "MemAvailable"):
+        continue
+      # Valores em kB então x1024 aqui
+      meminfo[key] = int(parts[1]) * 1024
+
+  total = meminfo["MemTotal"]
+  available = meminfo["MemAvailable"]
+  used = total - available
+  return {
+    "total": total,
+    "available": available,
+    "used": used,
+    "used_pct": (used / total) * 100,
+    "total_pretty": prettify_byte_size(total),
+    "available_pretty": prettify_byte_size(available),
+    "used_pretty": prettify_byte_size(used),
+  }

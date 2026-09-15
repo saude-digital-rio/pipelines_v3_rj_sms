@@ -101,7 +101,8 @@ def create_data_folders_task() -> dict[str, str]:
     return folders
 
   except Exception as e:  # pylint: disable=W0703
-    sys.exit(f"Problema ao criar pastas: {e}")
+    log(f"Erro ao criar pastas {e}", level="error")
+    sys.exit(f"Erro ao criar pastas: {e}")
 
 
 def create_partitions(

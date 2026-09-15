@@ -20,10 +20,14 @@ from pipelines.utils.logger import log
 from pipelines.utils.prefect import authenticated_task as task
 
 from .constants import constants as flow_consts
-from .utils import build_ES_query, connect_ES, normalize_dates
+from .utils import build_ES_query, connect_ES, handle_task_state_change, normalize_dates
 
 
-@unauthenticated_task
+@unauthenticated_task(
+  on_running=[handle_task_state_change],
+  on_completion=[handle_task_state_change],
+  on_failure=[handle_task_state_change],
+)
 def gerar_faixas_de_data(
   data_inicio: Optional[str] = None,
   data_fim: Optional[str] = None,
@@ -63,7 +67,12 @@ def gerar_faixas_de_data(
 
 
 @unauthenticated_task(
-  retries=5, retry_delay_seconds=30, tags=[flow_consts.CONCURRENCY_LIMIT_TAG.value]
+  retries=5,
+  retry_delay_seconds=30,
+  tags=[flow_consts.CONCURRENCY_LIMIT_TAG.value],
+  on_running=[handle_task_state_change],
+  on_completion=[handle_task_state_change],
+  on_failure=[handle_task_state_change],
 )
 def extract_from_api(
   user: str,
@@ -238,7 +247,11 @@ def extract_from_api(
   return safe_df_to_parquet(df)
 
 
-@unauthenticated_task()
+@unauthenticated_task(
+  on_running=[handle_task_state_change],
+  on_completion=[handle_task_state_change],
+  on_failure=[handle_task_state_change],
+)
 def write_partitions_to_disk(df_path: str) -> list[tuple[str, str]]:
   """
   Agrupa dados de um DataFrame por data_particao, salva cada pedaço
@@ -267,7 +280,11 @@ def write_partitions_to_disk(df_path: str) -> list[tuple[str, str]]:
   return all_paths
 
 
-@task()
+@task(
+  on_running=[handle_task_state_change],
+  on_completion=[handle_task_state_change],
+  on_failure=[handle_task_state_change],
+)
 def read_partition_from_bigquery(
   dataset_id: str,
   table_id: str,
@@ -306,7 +323,11 @@ def read_partition_from_bigquery(
     return ""
 
 
-@task()
+@task(
+  on_running=[handle_task_state_change],
+  on_completion=[handle_task_state_change],
+  on_failure=[handle_task_state_change],
+)
 def delete_partition_files(
   dataset_id: str,
   table_id: str,
@@ -357,7 +378,11 @@ def delete_partition_files(
   bucket.delete_blobs(blobs)
 
 
-@unauthenticated_task()
+@unauthenticated_task(
+  on_running=[handle_task_state_change],
+  on_completion=[handle_task_state_change],
+  on_failure=[handle_task_state_change],
+)
 def merge_partition(old_df_path: str, new_df_path: str, data_particao: str) -> str:
   """
   Junta dois DataFrames, deduplicando por `codigo_solicitacao`.
@@ -397,7 +422,11 @@ def merge_partition(old_df_path: str, new_df_path: str, data_particao: str) -> s
   return out_path
 
 
-@task()
+@task(
+  on_running=[handle_task_state_change],
+  on_completion=[handle_task_state_change],
+  on_failure=[handle_task_state_change],
+)
 def delete_old_files(
   data_inicio: Optional[str], data_fim: Optional[str], dataset_id: str, table_id: str
 ):
