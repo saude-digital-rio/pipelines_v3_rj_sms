@@ -276,12 +276,16 @@ cases:
       dataset_id: brutos_prontuario_sarah_padi
       table: atendimento_domiciliar_entradas
 
-  # Extração CSV(GCS) -> tabela (BigQuery)
-  - case_slug: "teste_extracao_laudos_medilab"
+  # Extração de Relatórios Medilab
+  - case_slug: "extract_relatorios_medilab"
     flow_path: "pipelines.datalake.extract_load.exames_laboratoriais.medilab.flows"
-    flow_name: "extract_gcs_csv"
+    flow_name: "medilab_extraction"
     params:
       environment: dev
+      gcs_uri: "gs://rj_subhue_medilab_backups/modelo_medlab_teste.csv"
+      dataset_id: "medilab_teste"
+      table_id: "relatorios_medilab"
+      periodo_referencia: "2026-08"
 
   ################################
   #  MIGRATE                     #
