@@ -11,7 +11,6 @@ flow_parameters = [
     "dataset_id": MEDILAB_CONFIG["DATASET_ID"],
     "table_id": MEDILAB_CONFIG["TABLE_ID"],
     "gcs_uri": MEDILAB_CONFIG["GCS_URI"],
-    "periodo_referencia": "2026-08",  # Esse valor pode vir a ser dinâmico no futuro
   }
 ]
 

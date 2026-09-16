@@ -285,7 +285,6 @@ cases:
       gcs_uri: "gs://rj_subhue_medilab_backups/modelo_medlab_teste.csv"
       dataset_id: "medilab_teste"
       table_id: "relatorios_medilab"
-      periodo_referencia: "2026-08"
 
   ################################
   #  MIGRATE                     #
