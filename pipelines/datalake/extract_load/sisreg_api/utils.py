@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from datetime import date, datetime, timedelta
-import os
 from pathlib import Path
 from typing import Literal, Optional, Tuple
 
@@ -133,11 +132,8 @@ def handle_task_state_change(task: Task, task_run, state: State):
   )
 
   files = []
-  for path in Path("/tmp/pipelines").rglob('*'):
+  for path in Path("/tmp/pipelines").rglob("*"):
     if path.is_file():
       files.append(f"{path}: {prettify_byte_size(path.stat().st_size)}")
 
-  log(
-    "Arquivos em /tmp:\n"
-    + "\n".join(sorted(files))
-  )
+  log("Arquivos em /tmp:\n" + "\n".join(sorted(files)))
