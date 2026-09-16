@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import gc
 import os
 import time
 from datetime import datetime, timedelta
@@ -8,6 +9,7 @@ from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 import pandas as pd
+import pyarrow
 from google.cloud import bigquery, storage
 from prefect import task as unauthenticated_task
 
@@ -411,14 +413,15 @@ def merge_partition(old_df_path: str, new_df_path: str, data_particao: str) -> s
   merged_df = pd.concat([old_df, new_df], ignore_index=True)
   del old_df
   del new_df
-  merged_df = merged_df.drop_duplicates(
-    subset=["codigo_solicitacao"], keep="last"
-  ).reset_index(drop=True)
+  merged_df.drop_duplicates(subset=["codigo_solicitacao"], keep="last", inplace=True)
+  merged_df.reset_index(drop=True, inplace=True)
 
   log(f"[{data_particao}] Merge concluído; {len(merged_df)} registros no final")
 
   out_path = safe_df_to_parquet(merged_df)
   del merged_df
+  gc.collect()
+  pyarrow.default_memory_pool().release_unused()
   return out_path
 
 

@@ -178,5 +178,4 @@ def extract_sisreg_api(
     )
 
 
-# TODO: é possível fazer esse flow funcionar com memory=medium (sem levar 5h)?
-_flows = [flow_config(flow=extract_sisreg_api, schedules=schedules, memory="large")]
+_flows = [flow_config(flow=extract_sisreg_api, schedules=schedules, memory="medium")]
