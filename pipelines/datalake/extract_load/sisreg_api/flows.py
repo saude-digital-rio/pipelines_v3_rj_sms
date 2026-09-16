@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import gc
-import os
 from typing import Literal, Optional
 
 import pandas as pd
@@ -19,6 +18,7 @@ from .tasks import (
   gerar_faixas_de_data,
   merge_partition,
   read_partition_from_bigquery,
+  upload_parquet_to_datalake,
   write_partitions_to_disk,
 )
 from .utils import table_name_from_resource
@@ -161,15 +161,9 @@ def extract_sisreg_api(
           sanity_check=merged_df_path,
         )
         # 2b.4) Reupload dos dados agora atualizados
-        upload_df_to_datalake_task(
-          df=pd.read_parquet(merged_df_path),
-          dataset_id=dataset_id,
-          table_id=table_id,
-          dump_mode="append",
-          source_format="parquet",
-          date_partition_column="data_particao",
+        upload_parquet_to_datalake(
+          filepath=merged_df_path, dataset_id=dataset_id, table_id=table_id
         )
-        os.remove(merged_df_path)
 
   if mode == "extract":
     # 3) Por fim, apaga arquivos antigos
