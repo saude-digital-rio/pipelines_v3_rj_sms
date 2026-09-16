@@ -14,11 +14,7 @@ from pipelines.utils.prefect import flow, flow_config
 
 @flow(name="Extração Relatórios Medilab")
 def medilab_extraction(
-  gcs_uri: str,
-  dataset_id: str,
-  table_id: str,
-  periodo_referencia: str,
-  environment: str = "dev",
+  gcs_uri: str, dataset_id: str, table_id: str, environment: str = "dev"
 ) -> None:
   """
   Flow que baixa um CSV do bucket GCS, aplica transformações de limpeza nas colunase cria/alimenta uma tabela no BigQuery.
@@ -42,6 +38,7 @@ def medilab_extraction(
   # Linhagem de dados(sem os espaços extras para não falhar no Linter)
   df["arquivo_origem"] = gcs_uri
   df["data_carga"] = extracted_at
+  periodo_referencia = extracted_at
   df["periodo_referencia"] = periodo_referencia
 
   log(f"Colunas tratadas e metadados de rastreio adicionados: {list(df.columns)}")
