@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import gc
 import glob
 import os
 import shutil
@@ -8,6 +9,7 @@ from typing import Dict, List, Literal, Optional
 
 import basedosdados as bd
 import pandas as pd
+import pyarrow
 from google.cloud import bigquery
 
 from pipelines.utils.env import get_google_project_for_environment
@@ -34,8 +36,8 @@ def safe_df_to_parquet(df: pd.DataFrame, output_path: Optional[str] = None) -> s
     root_folder = create_tmp_data_folder()
     output_path = os.path.join(root_folder, f"{uuid.uuid4()}.parquet")
 
-  df = df.fillna("").astype(str)
-  df.to_parquet(output_path, index=False, compression="zstd")
+  df.fillna("", inplace=True)
+  df.astype(str).to_parquet(output_path, index=False, compression="zstd")
   return output_path
 
 
@@ -276,6 +278,11 @@ def create_date_partitions(
     elif file_format == "parquet":
       safe_df_to_parquet(df=dataframe, output_path=file_folder)
 
+    del dataframe
+
+  dataframes = None
+  gc.collect()
+  pyarrow.default_memory_pool().release_unused()
   return root_folder
 
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import gc
 import os
+import shutil
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -14,7 +15,11 @@ from google.cloud import bigquery, storage
 from prefect import task as unauthenticated_task
 
 from pipelines.utils.cleanup import cleanup_columns_for_bigquery, prettify_byte_size
-from pipelines.utils.datalake import safe_df_to_parquet
+from pipelines.utils.datalake import (
+  create_date_partitions,
+  safe_df_to_parquet,
+  upload_to_datalake,
+)
 from pipelines.utils.datetime import is_valid_YYYYMMDD, now, now_str, today
 from pipelines.utils.env import get_google_project_for_environment
 from pipelines.utils.io import create_tmp_data_folder
@@ -261,7 +266,9 @@ def write_partitions_to_disk(df_path: str) -> list[tuple[str, str]]:
   """
   root_path = create_tmp_data_folder()
   all_paths = []
-  dataframes = pd.read_parquet(df_path).groupby("data_particao")
+
+  with open(df_path, "rb") as f:
+    dataframes = pd.read_parquet(f).groupby("data_particao")
   os.remove(df_path)
 
   for data_particao, partition_df in dataframes:
@@ -354,7 +361,8 @@ def delete_partition_files(
     or os.stat(sanity_check).st_size <= 0
   ):
     raise RuntimeError(
-      f"DataFrame `sanity_check` veio vazio! Partição {data_particao} não será apagada"
+      f"Arquivo em `sanity_check` ({sanity_check}) não existe! "
+      f"Partição {data_particao} não será apagada"
     )
 
   dt = datetime.fromisoformat(data_particao).date()
@@ -380,6 +388,54 @@ def delete_partition_files(
   bucket.delete_blobs(blobs)
 
 
+@task(
+  on_running=[handle_task_state_change],
+  on_completion=[handle_task_state_change],
+  on_failure=[handle_task_state_change],
+)
+def upload_parquet_to_datalake(filepath: str, dataset_id: str, table_id: str):
+  if not filepath or not os.path.isfile(filepath) or os.stat(filepath).st_size <= 0:
+    raise RuntimeError(f"Arquivo '{filepath}' não existe!")
+
+  with open(filepath, "rb") as f:
+    df = pd.read_parquet(f)
+  os.remove(filepath)
+
+  if df is None or df.empty:
+    log(
+      f"Dataframe vazio para '{dataset_id}.{table_id}'; upload ignorado", level="warning"
+    )
+    return
+
+  root_folder = create_tmp_data_folder()
+  log(
+    f"Usando diretório '{root_folder}'\n"
+    f"Criando particionamento por data para dataframe com {df.shape[0]} linhas"
+  )
+  create_date_partitions(
+    dataframe=df,
+    partition_column="data_particao",
+    file_format="parquet",
+    root_folder=root_folder,
+  )
+
+  log(f"Fazendo upload de dados em '{root_folder}'")
+  upload_to_datalake(
+    input_path=root_folder,
+    dataset_id=dataset_id,
+    table_id=table_id,
+    dump_mode="append",
+    source_format="parquet",
+    if_storage_data_exists="raise",
+    biglake_table=True,
+    dataset_is_public=False,
+    exception_on_missing_input_file=True,
+  )
+
+  log(f"Apagando dados locais: '{root_folder}'")
+  shutil.rmtree(root_folder)
+
+
 @unauthenticated_task(
   on_running=[handle_task_state_change],
   on_completion=[handle_task_state_change],
@@ -402,9 +458,12 @@ def merge_partition(old_df_path: str, new_df_path: str, data_particao: str) -> s
     log(f"[{data_particao}] Nenhum dado já no datalake; fazendo upload de tudo")
     return new_df_path
 
-  old_df = pd.read_parquet(old_df_path)
+  with open(old_df_path, "rb") as f:
+    old_df = pd.read_parquet(f)
   os.remove(old_df_path)
-  new_df = pd.read_parquet(new_df_path)
+
+  with open(new_df_path, "rb") as f:
+    new_df = pd.read_parquet(f)
   os.remove(new_df_path)
 
   log(

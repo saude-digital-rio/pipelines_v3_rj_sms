@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 from datetime import date, datetime, timedelta
-from pathlib import Path
 from typing import Literal, Optional, Tuple
 
 from elasticsearch import Elasticsearch, exceptions
 from prefect import State, Task
 
-from pipelines.utils.cleanup import cleanup_bigquery_name, prettify_byte_size
+from pipelines.utils.cleanup import cleanup_bigquery_name
 from pipelines.utils.datetime import parse_date_or_today
 from pipelines.utils.logger import log
 from pipelines.utils.monitor import get_ram_snapshot
@@ -130,10 +129,3 @@ def handle_task_state_change(task: Task, task_run, state: State):
     f"({snapshot['used_pct']:.2f}%)"
     "\n====================="
   )
-
-  files = []
-  for path in Path("/tmp/pipelines").rglob("*"):
-    if path.is_file():
-      files.append(f"{path}: {prettify_byte_size(path.stat().st_size)}")
-
-  log("Arquivos em /tmp:\n" + "\n".join(sorted(files)))
