@@ -276,6 +276,16 @@ cases:
       dataset_id: brutos_prontuario_sarah_padi
       table: atendimento_domiciliar_entradas
 
+  # Extração de Relatórios Medilab
+  - case_slug: "extract_relatorios_medilab"
+    flow_path: "pipelines.datalake.extract_load.exames_laboratoriais.medilab.flows"
+    flow_name: "medilab_extraction"
+    params:
+      environment: dev
+      gcs_uri: "gs://rj_subhue_medilab_backups/modelo_medlab_teste.csv"
+      dataset_id: "medilab_teste"
+      table_id: "relatorios_medilab"
+
   ################################
   #  MIGRATE                     #
   ################################
@@ -447,3 +457,4 @@ cases:
     flow_name: "report_long_running_flows"
     params:
       environment: "dev"
+
