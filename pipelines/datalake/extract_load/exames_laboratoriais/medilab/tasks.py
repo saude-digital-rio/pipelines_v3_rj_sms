@@ -4,8 +4,8 @@ from prefect import task
 
 from pipelines.utils.logger import log
 
-@task(name="Extração: Buscar CSV mais recente no bucket(GCS)")
 
+@task(name="Extração: Buscar CSV mais recente no bucket(GCS)")
 def get_latest_csv_from_gcs(gcs_folder_uri: str) -> str:
   """
   Busca o CSV mais recente em uma pasta do bucket(GCS).

@@ -4,13 +4,16 @@ from typing import Optional
 
 import pandas as pd
 
+from pipelines.datalake.extract_load.exames_laboratoriais.medilab.tasks import (
+  get_latest_csv_from_gcs,
+)
 from pipelines.utils.cleanup import cleanup_columns_for_bigquery
 from pipelines.utils.datalake import upload_df_to_datalake_task
 from pipelines.utils.datetime import now_str
 from pipelines.utils.google import download_file_from_bucket_task
 from pipelines.utils.logger import log
 from pipelines.utils.prefect import flow, flow_config
-from pipelines.datalake.extract_load.exames_laboratoriais.medilab.tasks import get_latest_csv_from_gcs
+
 
 @flow(name="Extração: Relatórios Medilab")
 def medilab_extraction(
