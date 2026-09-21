@@ -282,8 +282,8 @@ cases:
     flow_name: "medilab_extraction"
     params:
       environment: dev
-      gcs_uri: "gs://rj_subhue_medilab_backups/modelo_medlab_teste.csv"
-      dataset_id: "medilab_teste"
+      gcs_uri: "gs://rj_subhue_medilab_backups"
+      dataset_id: "brutos_relatorios_medilab"
       table_id: "relatorios_medilab"
 
   ################################
