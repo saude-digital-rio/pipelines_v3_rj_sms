@@ -281,16 +281,14 @@ cases:
   ################################
 
   # Migração Google Drive -> GCS
-  - case_slug: "gdrive-to-gcs"
-    flow_path: "pipelines.datalake.migrate.gdrive_to_gcs.flows"
-    flow_name: "gdrive_to_gcs"
+  - case_slug: "informes_vitacare"
+    flow_path: "pipelines.datalake.migrate.informes_vitacare.flows"
+    flow_name: "informes_vitacare"
     params:
       environment: dev
       root_folder_id: "1VUdm8fixnUs_dJrcflsNvzXIGPX6e-2r"
       bucket_name: "vitacare_backups_gdrive"
       table_id: "log_gdrive_to_gcs"
-      start_date: "M-0"
-      end_date: "D-0"
 
   # Migração SQL Server (.BAK) -> Cloud SQL
   - case_slug: "sqlserver_backup"

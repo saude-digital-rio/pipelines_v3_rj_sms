@@ -15,7 +15,6 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
 from pipelines.utils.cleanup import cleanup_columns_for_bigquery, prettify_byte_size
-from pipelines.utils.datetime import from_relative_date
 from pipelines.utils.infisical import get_credentials_from_env
 from pipelines.utils.io import create_tmp_data_folder
 from pipelines.utils.logger import log
@@ -349,7 +348,7 @@ def _date_to_isoformat(date) -> str | None:
   return date.date().isoformat() if hasattr(date, "date") else date.isoformat()
 
 
-def list_google_drive_files(folder_id: str, start_date: str, end_date: str) -> list[dict]:
+def list_google_drive_files(folder_id: str) -> list[dict]:
   """
   Lista arquivos de uma pasta e subpastas do Google Drive.
 
@@ -364,15 +363,6 @@ def list_google_drive_files(folder_id: str, start_date: str, end_date: str) -> l
 
   service = get_google_drive_service()
 
-  if not end_date:
-    end_date = from_relative_date("D-0")
-
-  start_date = _date_to_isoformat(start_date)
-  end_date = _date_to_isoformat(end_date)
-
-  if start_date and start_date > end_date:
-    raise ValueError("start date precisa ser anterior a end_date")
-
   folder_mime_type = "application/vnd.google-apps.folder"
   root_folder = (
     service.files().get(fileId=folder_id, fields="name", supportsAllDrives=True).execute()
@@ -382,20 +372,7 @@ def list_google_drive_files(folder_id: str, start_date: str, end_date: str) -> l
   def list_files(current_folder_id: str, current_path: str) -> list[dict]:
     files = []
     page_token = None
-    date_filters = [f"modifiedTime <= '{end_date}T23:59:59'"]
-
-    if start_date:
-      date_filters.append(f"modifiedTime >= '{start_date}T00:00:00'")
-
-    file_date_filter = date_filters[0]
-    if start_date:
-      file_date_filter = f"{file_date_filter} and {date_filters[1]}"
-
-    query = (
-      f"'{current_folder_id}' in parents "
-      f"and trashed = false "
-      f"and (mimeType = '{folder_mime_type}' or ({file_date_filter}))"
-    )
+    query = f"'{current_folder_id}' in parents and trashed = false"
 
     while True:
       response = (
@@ -413,7 +390,6 @@ def list_google_drive_files(folder_id: str, start_date: str, end_date: str) -> l
 
       for item in response.get("files", []):
         relative_path = f"{current_path}/{item['name']}" if current_path else item["name"]
-
         if item["mimeType"] == folder_mime_type:
           files.extend(list_files(item["id"], relative_path))
           continue
@@ -430,8 +406,37 @@ def list_google_drive_files(folder_id: str, start_date: str, end_date: str) -> l
 
   listed_files = list_files(folder_id, root_folder_name)
 
-  log(f"Encontrado(s) {len(listed_files)} arquivo(s) no Google Drive")
+  log(f"Encontrado(s) {len(listed_files)} arquivo(s) em {root_folder_name}")
   return listed_files
+
+
+def list_google_drive_folder(folder_id: str):
+  """
+  Lista arquivos de uma pasta e subpastas do Google Drive.
+  Não implementa lógica recursiva.
+
+  Args:
+    folder_id (str): ID da pasta raiz no Google Drive.
+
+  Returns:
+    list[dict]: Lista de arquivos encontrados, contendo o ID, nome e última modificação.
+  """
+  service = get_google_drive_service()
+
+  response = (
+    service.files()
+    .list(
+      q=f"'{folder_id}' in parents and trashed = false",
+      fields="nextPageToken, files(id, name, mimeType, modifiedTime)",
+      pageSize=1000,
+      supportsAllDrives=True,
+      includeItemsFromAllDrives=True,
+    )
+    .execute()
+  )
+
+  files = response.get("files", [])
+  return files
 
 
 def download_google_drive_file(file_id: str, destination_path: str = None) -> str:
