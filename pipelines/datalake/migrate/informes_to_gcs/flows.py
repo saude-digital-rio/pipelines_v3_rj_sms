@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from typing import Optional, Literal
+from typing import Literal, Optional
+
 from pipelines.constants import CIT
 from pipelines.utils.datetime import from_relative_date
 from pipelines.utils.google import build_bucket_name
@@ -30,7 +31,7 @@ def gdrive_to_gcs(
   bucket_name: str,
   table_id: str = "log_gdrive_to_gcs",
   reference_month: Optional[str] = None,
-  environment: Literal['dev', 'prod'] = 'dev',
+  environment: Literal["dev", "prod"] = "dev",
 ):
   """
   Args:
@@ -41,12 +42,12 @@ def gdrive_to_gcs(
     table_id(str?):
       Nome da tabela de logging onde serão inseridos as informações do flow.
     reference_month(str?):
-      Mês de referência dos informes a serem extraídos (Ex: "2026-09"). 
+      Mês de referência dos informes a serem extraídos (Ex: "2026-09").
       Se não for definido, o mês de referência é o anterior.
     environment(str?):
-      Ambiente de execução, "dev" (padrão) ou "prod". 
+      Ambiente de execução, "dev" (padrão) ou "prod".
 
-  
+
   """
   rename_flow_run(new_name=f"{environment} - {bucket_name}")
 
@@ -60,10 +61,7 @@ def gdrive_to_gcs(
   end_date = from_relative_date(end_date) if end_date else None
 
   try:
-    files = list_informes_files(
-      folder_id=root_folder_id, 
-      reference_month=reference_month
-    )
+    files = list_informes_files(folder_id=root_folder_id, reference_month=reference_month)
 
     # Processamento sequencial para evitar muitos downloads/uploads simultâneos.
     for file in files:

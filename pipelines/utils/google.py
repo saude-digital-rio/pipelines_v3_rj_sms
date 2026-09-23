@@ -15,7 +15,6 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
 from pipelines.utils.cleanup import cleanup_columns_for_bigquery, prettify_byte_size
-from pipelines.utils.datetime import from_relative_date
 from pipelines.utils.infisical import get_credentials_from_env
 from pipelines.utils.io import create_tmp_data_folder
 from pipelines.utils.logger import log
@@ -373,10 +372,7 @@ def list_google_drive_files(folder_id: str) -> list[dict]:
   def list_files(current_folder_id: str, current_path: str) -> list[dict]:
     files = []
     page_token = None
-    query = (
-      f"'{current_folder_id}' in parents "
-      f"and trashed = false"
-    )
+    query = f"'{current_folder_id}' in parents and trashed = false"
 
     while True:
       response = (
@@ -413,6 +409,7 @@ def list_google_drive_files(folder_id: str) -> list[dict]:
   log(f"Encontrado(s) {len(listed_files)} arquivo(s) em {root_folder_name}")
   return listed_files
 
+
 def list_google_drive_folder(folder_id: str):
   """
   Lista arquivos de uma pasta e subpastas do Google Drive.
@@ -438,7 +435,7 @@ def list_google_drive_folder(folder_id: str):
     .execute()
   )
 
-  files = response.get('files', [])
+  files = response.get("files", [])
   return files
 
 

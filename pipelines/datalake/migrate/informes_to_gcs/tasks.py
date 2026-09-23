@@ -12,8 +12,8 @@ from pipelines.utils.datetime import now, parse_date_or_today
 from pipelines.utils.env import get_prefect_url
 from pipelines.utils.google import (
   download_google_drive_file,
-  list_google_drive_folder,
   list_google_drive_files,
+  list_google_drive_folder,
   upload_to_cloud_storage,
 )
 from pipelines.utils.io import create_tmp_data_folder
@@ -22,40 +22,42 @@ from pipelines.utils.prefect import authenticated_task as task
 
 
 @task
-def list_informes_files(
-  folder_id: str, 
-  reference_month: str = None
-) -> list[dict]:
+def list_informes_files(folder_id: str, reference_month: str = None) -> list[dict]:
   # Dentro da pasta raiz (INFORMES-MENSAIS-ETSN) há pastas para cada AP
   # Dentro de cada pasta de uma AP há pastas referentes a meses (Ex: 2026-09)
   # Dentro de cada pasta de um mês há subpastas para diferentes temas/arquivos
   # Root Folder -> APs -> mes_referencia -> Temas -> Files
-  
+
   if not reference_month:
-    log('Mês de referência não fornecido. Utilizando mês anterior como referência', level='warning')
+    log(
+      "Mês de referência não fornecido. Utilizando mês anterior como referência",
+      level="warning",
+    )
     current_date = now()
     reference_date = current_date - timedelta(weeks=4)
-    reference_month = reference_date.strftime('%Y-%m')
-  
-  log(f'Mês de referência: {reference_month}')
-    
+    reference_month = reference_date.strftime("%Y-%m")
+
+  log(f"Mês de referência: {reference_month}")
+
   aps = list_google_drive_folder(folder_id=folder_id)
   all_files = []
-  
+
   # Pastas de cada AP
   for ap in aps:
-    current_folder_ap = ap.get('id', None)
-    ap_name = ap.get('name', None)
+    current_folder_ap = ap.get("id", None)
+    ap_name = ap.get("name", None)
     if current_folder_ap:
       log(f"Listando pastas e arquivos em {ap_name}")
 
-      # Lista as pastas de mes-referência dentro da pasta da AP 
+      # Lista as pastas de mes-referência dentro da pasta da AP
       month_folders = list_google_drive_folder(folder_id=current_folder_ap)
-      month_folder = [folder for folder in month_folders if folder.get('name') == reference_month]
+      month_folder = [
+        folder for folder in month_folders if folder.get("name") == reference_month
+      ]
 
-      if month_folder[0].get('id', None):
+      if month_folder[0].get("id", None):
         # Usa list_google_drive_files para utilizar lógica recursiva
-        files = list_google_drive_files(folder_id=month_folder[0].get('id', None))
+        files = list_google_drive_files(folder_id=month_folder[0].get("id", None))
         all_files.extend(files)
   return all_files
 
