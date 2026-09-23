@@ -25,11 +25,13 @@ informes = [
 
 
 schedules = [
-  *create_schedule_list(
-    parameters_list=vitacare_historico,
-    interval="monthly",
-    config={"day": 7, "hour": 16, "minute": 0},
-  ),
+  # Desativado pois os backups da vitacare estão sendo enviados para um bucket 
+  # e não mais para pasta no Google Drive
+  # *create_schedule_list(
+  #   parameters_list=vitacare_historico,
+  #   interval="monthly",
+  #   config={"day": 7, "hour": 16, "minute": 0},
+  # ),
   *create_schedule_list(
     parameters_list=informes,
     interval="monthly",
