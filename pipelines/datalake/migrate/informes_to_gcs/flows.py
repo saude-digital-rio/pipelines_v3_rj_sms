@@ -29,7 +29,7 @@ def gdrive_to_gcs(
   root_folder_id: str,
   bucket_name: str,
   table_id: str = "log_gdrive_to_gcs",
-  reference_month: str = None,
+  reference_month: Optional[str] = None,
   environment: Literal['dev', 'prod'] = 'dev',
 ):
   """
