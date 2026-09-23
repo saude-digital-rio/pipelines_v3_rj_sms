@@ -2,7 +2,6 @@
 from typing import Literal, Optional
 
 from pipelines.constants import CIT
-from pipelines.utils.datetime import from_relative_date
 from pipelines.utils.google import build_bucket_name
 from pipelines.utils.logger import log
 from pipelines.utils.prefect import flow, flow_config, rename_flow_run
