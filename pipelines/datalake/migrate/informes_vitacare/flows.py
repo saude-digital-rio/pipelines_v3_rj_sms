@@ -26,7 +26,7 @@ LOG_DATASET_ID = "controle_pipelines"
   owners=[CIT.HERIAN_ID.value],
   tags=["CIT"],
 )
-def gdrive_to_gcs(
+def informes_vitacare(
   root_folder_id: str,
   bucket_name: str,
   table_id: str = "log_gdrive_to_gcs",
@@ -49,16 +49,12 @@ def gdrive_to_gcs(
 
 
   """
+  log_items = []
   rename_flow_run(new_name=f"{environment} - {bucket_name}")
 
   resolved_bucket_name = build_bucket_name(
     bucket_name=bucket_name, environment=environment
   )
-
-  files = []
-  log_items = []
-  start_date = from_relative_date(start_date) if start_date else None
-  end_date = from_relative_date(end_date) if end_date else None
 
   try:
     files = list_informes_files(folder_id=root_folder_id, reference_month=reference_month)
@@ -94,4 +90,4 @@ def gdrive_to_gcs(
   )
 
 
-_flows = [flow_config(flow=gdrive_to_gcs, schedules=schedules)]
+_flows = [flow_config(flow=informes_vitacare, schedules=schedules)]
