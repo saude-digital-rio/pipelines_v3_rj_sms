@@ -33,26 +33,17 @@ A arquitetura utiliza um padrão de **Extração Híbrida**, permitindo tanto ex
 As principais *tasks* que compõem esse flow incluem:
 
 - **Operações no Cloud Storage:**
-
-  - `get_latest_csv_from_gcs(gcs_folder_uri)`: Acessa o bucket GCS e lista os arquivos disponíveis na pasta informada, filtrando apenas os arquivos com extensão `.csv`.
-
-  - `get_latest_csv_from_gcs(gcs_folder_uri)`: Ordena os arquivos encontrados utilizando a data de criação registrada no GCS (`time_created`) e retorna a URI do arquivo mais recente, permitindo que o pipeline selecione automaticamente o relatório mais atual.
+  - `get_latest_csv_from_gcs(gcs_folder_uri)`: Acessa o bucket GCS, lista os arquivos disponíveis na pasta informada e retorna a URI do arquivo CSV mais recente (baseado na data de criação `time_created`), permitindo que o pipeline selecione automaticamente o relatório mais atual.
 
 - **Download e Processamento de Dados:**
+  - `download_file_from_bucket_task(...)`: Realiza o download do arquivo selecionado no GCS para o ambiente temporário do worker, disponibilizando o relatório para processamento local utilizando Pandas.
 
-  - `download_file_from_bucket_task(...)`: Realiza o download do arquivo selecionado no GCS para o ambiente temporário do worker, disponibilizando o relatório para processamento local.
-
-  - Executa a leitura do arquivo CSV utilizando Pandas e prepara os dados para as etapas de tratamento e carga.
-
-- **Tratamento e Padronização dos Dados:**
-
-  - `cleanup_columns_for_bigquery(...)`: Realiza a limpeza e padronização dos nomes das colunas, removendo acentos, espaços e caracteres especiais para adequação ao padrão de nomenclatura aceito pelo BigQuery.
-
-  - Adiciona informações de rastreabilidade aos registros processados, permitindo identificar a origem dos dados carregados no Datalake.
+- **Tratamento, Padronização e Linhagem dos Dados:**
+  - `cleanup_columns_for_bigquery(...)`: Realiza a limpeza e padronização dos nomes das colunas, removendo acentos, espaços e caracteres especiais para adequação ao padrão do BigQuery.
+  - **Adição de Metadados:** Injeta colunas essenciais para rastreabilidade e particionamento no dbt, incluindo `arquivo_origem` (URI do GCS), `data_carga` (momento exato da extração) e `periodo_referencia` (fixado no dia 01 do mês da extração para agregar a competência dos exames).
 
 - **Carga no DataLake:**
-
-  - `upload_df_to_datalake_task(...)`: Realiza o upload do dataframe processado para a tabela de destino no Datalake, efetuando a carga dos dados tratados para o BigQuery.
+  - `upload_df_to_datalake_task(...)`: Realiza o upload do dataframe processado para a tabela de destino na camada staging do Datalake no BigQuery.
 
 ---
 
@@ -61,24 +52,13 @@ As principais *tasks* que compõem esse flow incluem:
 Os módulos auxiliares concentram as configurações de ambiente, agendamento e funções reutilizáveis utilizadas durante o processamento dos relatórios.
 
 - **Configurações e Parametrização:**
-
-  - `MEDILAB_CONFIG`: Dicionário localizado em `constants.py` responsável por centralizar as configurações utilizadas pelo pipeline, como `DATASET_ID`, `TABLE_ID` e a URI base de produção.
-
-  - A utilização das constantes evita a definição de valores fixos (*hardcoded*) diretamente no código dos flows e tasks, facilitando a manutenção e configuração do pipeline.
+  - `MEDILAB_CONFIG`: Dicionário localizado em `constants.py` responsável por centralizar as configurações utilizadas pelo pipeline, como `DATASET_ID`, `TABLE_ID` e `GCS_URI`. Evita a definição de valores fixos (*hardcoded*) no código.
 
 - **Agendamento e Orquestração:**
-
-  - `schedules.py`: Utiliza as configurações definidas em `constants.py` para estruturar os gatilhos e agendamentos responsáveis pela execução automatizada do flow no Prefect.
-
-  - Permite que o pipeline seja executado de forma recorrente, mantendo o processamento dos relatórios integrado à rotina de ingestão do Datalake.
+  - `schedules.py`: Estrutura os gatilhos e agendamentos responsáveis pela execução automatizada do flow no Prefect, mantendo o processamento integrado à rotina do Datalake.
 
 - **Utilitários do Repositório (`pipelines.utils`):**
-
-  - `cleanup_columns_for_bigquery(...)`: Centraliza o tratamento dos cabeçalhos dos arquivos, garantindo que os nomes das colunas estejam adequados para utilização no BigQuery.
-
-  - `download_file_from_bucket_task(...)`: Encapsula as operações de download dos arquivos armazenados no GCS para o ambiente temporário de processamento.
-
-  - `upload_df_to_datalake_task(...)`: Encapsula a operação de carga dos dados processados para o Datalake, mantendo a integração com o BigQuery centralizada nos utilitários compartilhados.
+  - **Padrão de Arquitetura:** As lógicas pesadas de extração e manipulação de arquivos no Cloud Storage estão isoladas como funções puras em `pipelines.utils.google`. As *tasks* locais funcionam apenas como *wrappers* (cascas) explicativas para o Prefect, mantendo o fluxo modular e limpo.
 
 ---
 
