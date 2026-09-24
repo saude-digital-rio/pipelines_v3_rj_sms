@@ -162,6 +162,7 @@ def dissect_gcs_uri(uri: str):
     "file_ext": suffix,
   }
 
+
 def download_file_from_bucket(gcs_uri: str, to_dir: str = None):
   """
   Baixa um único arquivo do Google Cloud Storage a partir de um
@@ -190,6 +191,7 @@ def download_file_from_bucket(gcs_uri: str, to_dir: str = None):
   log(f"Arquivo '{full_file_path}' tem tamanho {prettify_byte_size(filesize)}")
   return full_file_path
 
+
 @task
 def download_file_from_bucket_task(gcs_uri: str):
   """
@@ -198,33 +200,35 @@ def download_file_from_bucket_task(gcs_uri: str):
   """
   return download_file_from_bucket(gcs_uri=gcs_uri)
 
+
 def get_latest_file_from_gcs(gcs_folder_uri: str, extension: str = ".csv") -> str:
-    """
-    A partir de um URI de pasta em um bucket do GCS, encontra o arquivo CSV
-    mais recentemente adicionado nela, e retorna seu URI.
-    """
-    uri = dissect_gcs_uri(gcs_folder_uri)
+  """
+  A partir de um URI de pasta em um bucket do GCS, encontra o arquivo CSV
+  mais recentemente adicionado nela, e retorna seu URI.
+  """
+  uri = dissect_gcs_uri(gcs_folder_uri)
 
-    client = storage.Client()
-    bucket = client.bucket(uri["bucket"])
+  client = storage.Client()
+  bucket = client.bucket(uri["bucket"])
 
-    prefix = uri["blob"]
-    if prefix and not prefix.endswith("/"):
-        prefix += "/"
+  prefix = uri["blob"]
+  if prefix and not prefix.endswith("/"):
+    prefix += "/"
 
-    blobs = list(bucket.list_blobs(prefix=prefix))
-    valid_blobs = [b for b in blobs if b.name.endswith(extension)]
+  blobs = list(bucket.list_blobs(prefix=prefix))
+  valid_blobs = [b for b in blobs if b.name.endswith(extension)]
 
-    if not valid_blobs:
-        raise FileNotFoundError(
-            f"Nenhum arquivo {extension} encontrado na pasta '{gcs_folder_uri}'"
-        )
+  if not valid_blobs:
+    raise FileNotFoundError(
+      f"Nenhum arquivo {extension} encontrado na pasta '{gcs_folder_uri}'"
+    )
 
-    latest_blob = sorted(valid_blobs, key=lambda b: b.time_created, reverse=True)[0]
-    latest_uri = f"gs://{uri['bucket']}/{latest_blob.name}"
+  latest_blob = sorted(valid_blobs, key=lambda b: b.time_created, reverse=True)[0]
+  latest_uri = f"gs://{uri['bucket']}/{latest_blob.name}"
 
-    log(f"Arquivo mais recente encontrado: {latest_uri}")
-    return latest_uri
+  log(f"Arquivo mais recente encontrado: {latest_uri}")
+  return latest_uri
+
 
 def upload_to_cloud_storage(
   path: str,
