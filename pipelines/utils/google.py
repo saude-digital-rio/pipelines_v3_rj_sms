@@ -104,7 +104,7 @@ def download_path_from_bucket(
     out (list[str]): Lista com caminho local de cada arquivo baixado
   """
   client = storage.Client()
-  bucket = client.get_bucket(bucket_name)
+  bucket = client.bucket(bucket_name)
   blobs: Iterator[Blob] = bucket.list_blobs(prefix=blob_prefix)
 
   if not os.path.exists(path):
@@ -162,7 +162,6 @@ def dissect_gcs_uri(uri: str):
     "file_ext": suffix,
   }
 
-
 def download_file_from_bucket(gcs_uri: str, to_dir: str = None):
   """
   Baixa um único arquivo do Google Cloud Storage a partir de um
@@ -172,7 +171,7 @@ def download_file_from_bucket(gcs_uri: str, to_dir: str = None):
   uri = dissect_gcs_uri(gcs_uri)
 
   client = storage.Client()
-  bucket = client.get_bucket(uri["bucket"])
+  bucket = client.bucket(uri["bucket"])
   blob = bucket.blob(uri["full_path"])
 
   if not to_dir:
@@ -180,17 +179,16 @@ def download_file_from_bucket(gcs_uri: str, to_dir: str = None):
 
   os.makedirs(to_dir, exist_ok=True)
   full_file_path = f"{to_dir}/{uri['filename']}"
+
   if os.path.exists(full_file_path):
     log(f"Arquivo já existe em '{full_file_path}'! Sobrescrevendo...")
-  with open(full_file_path, "w") as f:
-    file_path = f.name
-    log(f"Baixando '{gcs_uri}' para '{file_path}'")
-    blob.download_to_filename(file_path)
+
+  log(f"Baixando '{gcs_uri}' para '{full_file_path}'...")
+  blob.download_to_filename(full_file_path)
 
   filesize = os.path.getsize(full_file_path)
   log(f"Arquivo '{full_file_path}' tem tamanho {prettify_byte_size(filesize)}")
   return full_file_path
-
 
 @task
 def download_file_from_bucket_task(gcs_uri: str):
@@ -198,8 +196,35 @@ def download_file_from_bucket_task(gcs_uri: str):
   Baixa um único arquivo do Google Cloud Storage a partir de um
   URI 'gs://...' para um arquivo local, e retorna seu caminho
   """
-  return download_file_from_bucket(gcs_uri)
+  return download_file_from_bucket(gcs_uri=gcs_uri)
 
+def get_latest_file_from_gcs(gcs_folder_uri: str, extension: str = ".csv") -> str:
+    """
+    A partir de um URI de pasta em um bucket do GCS, encontra o arquivo CSV
+    mais recentemente adicionado nela, e retorna seu URI.
+    """
+    uri = dissect_gcs_uri(gcs_folder_uri)
+
+    client = storage.Client()
+    bucket = client.bucket(uri["bucket"])
+
+    prefix = uri["blob"]
+    if prefix and not prefix.endswith("/"):
+        prefix += "/"
+
+    blobs = list(bucket.list_blobs(prefix=prefix))
+    valid_blobs = [b for b in blobs if b.name.endswith(extension)]
+
+    if not valid_blobs:
+        raise FileNotFoundError(
+            f"Nenhum arquivo {extension} encontrado na pasta '{gcs_folder_uri}'"
+        )
+
+    latest_blob = sorted(valid_blobs, key=lambda b: b.time_created, reverse=True)[0]
+    latest_uri = f"gs://{uri['bucket']}/{latest_blob.name}"
+
+    log(f"Arquivo mais recente encontrado: {latest_uri}")
+    return latest_uri
 
 def upload_to_cloud_storage(
   path: str,
@@ -223,7 +248,7 @@ def upload_to_cloud_storage(
   """
   log(f"Fazendo upload de '{path}' para 'gs://{bucket_name}/{blob_prefix or ''}'")
   client = storage.Client()
-  bucket = client.get_bucket(bucket_name)
+  bucket = client.bucket(bucket_name)
 
   if if_exists not in ["raise", "replace", "pass"]:
     raise ValueError(

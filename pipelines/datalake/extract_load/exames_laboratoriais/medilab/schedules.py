@@ -7,7 +7,7 @@ from pipelines.utils.schedules import create_schedule_list
 # Parâmetros
 flow_parameters = [
   {
-    "environment": "dev",
+    "environment": "prod",
     "dataset_id": MEDILAB_CONFIG["DATASET_ID"],
     "table_id": MEDILAB_CONFIG["TABLE_ID"],
     "gcs_uri": MEDILAB_CONFIG["GCS_URI"],
