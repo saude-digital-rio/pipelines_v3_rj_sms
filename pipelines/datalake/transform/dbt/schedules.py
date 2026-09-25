@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime, timedelta
 
-from prefect.schedules import Interval
 
-from pipelines.constants import constants
 from pipelines.utils.schedules import create_schedule
 
 daily_schedule = [
@@ -55,8 +52,4 @@ monthly_schedule = [
 ]
 
 
-schedules = [
-  *daily_schedule,
-  *weekly_schedule,
-  *monthly_schedule,
-]
+schedules = [*daily_schedule, *weekly_schedule, *monthly_schedule]
