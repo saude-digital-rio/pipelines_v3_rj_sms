@@ -36,7 +36,7 @@ def medilab_extraction(
     gcs_uri = get_latest_csv_from_gcs(gcs_folder_uri=gcs_uri)
 
   extracted_at = now_str()
-  
+
   local_csv_path: Optional[str] = None
 
   # Baixar o arquivo do Bucket para a máquina
@@ -69,4 +69,3 @@ def medilab_extraction(
 
 
 _flows = [flow_config(flow=medilab_extraction, schedules=schedules)]
-
