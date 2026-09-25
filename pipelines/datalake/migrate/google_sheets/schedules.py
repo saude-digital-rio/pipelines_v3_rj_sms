@@ -1,67 +1,6 @@
 # -*- coding: utf-8 -*-
 from pipelines.utils.schedules import create_schedule_list
 
-hourly_parameters = [
-  {
-    "dataset_id": "brutos_cdi",
-    "environment": "prod",
-    "gsheets_sheet_name": "Controle PGM 2025",
-    "table_id": "pgm_2025",
-    "url": "https://docs.google.com/spreadsheets/d/1JirkDMgtYUIiJ7z5Zcxnn3sCUAneWwVfgT6u-M3QHE8",
-  },
-  {
-    "dataset_id": "brutos_cdi",
-    "environment": "prod",
-    "gsheets_sheet_name": "Controle PGM 2026",
-    "table_id": "pgm_2026",
-    "url": "https://docs.google.com/spreadsheets/d/1iZ8z5HSy7OXRRBk5MhlzYpk1mP1y6A-4r2vzgPi-0k4",
-  },
-  {
-    "dataset_id": "brutos_cdi",
-    "environment": "prod",
-    "gsheets_sheet_name": "Equipe JR 2025",
-    "table_id": "judicial_residual_2025",
-    "url": "https://docs.google.com/spreadsheets/d/1JirkDMgtYUIiJ7z5Zcxnn3sCUAneWwVfgT6u-M3QHE8",
-  },
-  {
-    "dataset_id": "brutos_cdi",
-    "environment": "prod",
-    "gsheets_sheet_name": "Equipe JR",
-    "table_id": "judicial_residual_2026",
-    "url": "https://docs.google.com/spreadsheets/d/1iZ8z5HSy7OXRRBk5MhlzYpk1mP1y6A-4r2vzgPi-0k4",
-  },
-  {
-    "url": "https://docs.google.com/spreadsheets/d/1JirkDMgtYUIiJ7z5Zcxnn3sCUAneWwVfgT6u-M3QHE8",
-    "gsheets_sheet_name": "Controle de Demandas - Equipe Individual",
-    "table_id": "equipe_tutela_individual_2025",  # 2025
-    "dataset_id": "brutos_cdi",
-    "environment": "prod",
-  },
-  {
-    "dataset_id": "brutos_cdi",
-    "environment": "prod",
-    "gsheets_sheet_name": "Controle de Demandas - Equipe Individual",
-    "table_id": "equipe_tutela_individual_2026",
-    "url": "https://docs.google.com/spreadsheets/d/1iZ8z5HSy7OXRRBk5MhlzYpk1mP1y6A-4r2vzgPi-0k4",
-  },
-  {
-    "dataset_id": "brutos_cdi",
-    "environment": "prod",
-    "gsheets_sheet_name": "Controle de Demandas - Equipe Coletiva",
-    "table_id": "equipe_tutela_coletiva_2025",
-    "url": "https://docs.google.com/spreadsheets/d/1JirkDMgtYUIiJ7z5Zcxnn3sCUAneWwVfgT6u-M3QHE8",
-  },
-  {
-    "dataset_id": "brutos_cdi",
-    "environment": "prod",
-    "gsheets_sheet_name": "Controle de Demandas - Equipe Coletiva",
-    "table_id": "equipe_tutela_coletiva_2026",
-    "url": "https://docs.google.com/spreadsheets/d/1iZ8z5HSy7OXRRBk5MhlzYpk1mP1y6A-4r2vzgPi-0k4",
-  },
-]
-# /hourly_parameters
-
-
 daily_parameters = [
   {
     "url": "https://docs.google.com/spreadsheets/d/1XySagSMiJs22XaYqq6IY372gqLOr4zA3koCpUf0kjOg",
@@ -231,6 +170,62 @@ daily_parameters = [
     "dataset_id": "brutos_sheets",
     "environment": "prod",
   },
+  {
+    "dataset_id": "brutos_cdi",
+    "environment": "prod",
+    "gsheets_sheet_name": "Controle PGM 2025",
+    "table_id": "pgm_2025",
+    "url": "https://docs.google.com/spreadsheets/d/1JirkDMgtYUIiJ7z5Zcxnn3sCUAneWwVfgT6u-M3QHE8",
+  },
+  {
+    "dataset_id": "brutos_cdi",
+    "environment": "prod",
+    "gsheets_sheet_name": "Controle PGM 2026",
+    "table_id": "pgm_2026",
+    "url": "https://docs.google.com/spreadsheets/d/1iZ8z5HSy7OXRRBk5MhlzYpk1mP1y6A-4r2vzgPi-0k4",
+  },
+  {
+    "dataset_id": "brutos_cdi",
+    "environment": "prod",
+    "gsheets_sheet_name": "Equipe JR 2025",
+    "table_id": "judicial_residual_2025",
+    "url": "https://docs.google.com/spreadsheets/d/1JirkDMgtYUIiJ7z5Zcxnn3sCUAneWwVfgT6u-M3QHE8",
+  },
+  {
+    "dataset_id": "brutos_cdi",
+    "environment": "prod",
+    "gsheets_sheet_name": "Equipe JR",
+    "table_id": "judicial_residual_2026",
+    "url": "https://docs.google.com/spreadsheets/d/1iZ8z5HSy7OXRRBk5MhlzYpk1mP1y6A-4r2vzgPi-0k4",
+  },
+  {
+    "url": "https://docs.google.com/spreadsheets/d/1JirkDMgtYUIiJ7z5Zcxnn3sCUAneWwVfgT6u-M3QHE8",
+    "gsheets_sheet_name": "Controle de Demandas - Equipe Individual",
+    "table_id": "equipe_tutela_individual_2025",  # 2025
+    "dataset_id": "brutos_cdi",
+    "environment": "prod",
+  },
+  {
+    "dataset_id": "brutos_cdi",
+    "environment": "prod",
+    "gsheets_sheet_name": "Controle de Demandas - Equipe Individual",
+    "table_id": "equipe_tutela_individual_2026",
+    "url": "https://docs.google.com/spreadsheets/d/1iZ8z5HSy7OXRRBk5MhlzYpk1mP1y6A-4r2vzgPi-0k4",
+  },
+  {
+    "dataset_id": "brutos_cdi",
+    "environment": "prod",
+    "gsheets_sheet_name": "Controle de Demandas - Equipe Coletiva",
+    "table_id": "equipe_tutela_coletiva_2025",
+    "url": "https://docs.google.com/spreadsheets/d/1JirkDMgtYUIiJ7z5Zcxnn3sCUAneWwVfgT6u-M3QHE8",
+  },
+  {
+    "dataset_id": "brutos_cdi",
+    "environment": "prod",
+    "gsheets_sheet_name": "Controle de Demandas - Equipe Coletiva",
+    "table_id": "equipe_tutela_coletiva_2026",
+    "url": "https://docs.google.com/spreadsheets/d/1iZ8z5HSy7OXRRBk5MhlzYpk1mP1y6A-4r2vzgPi-0k4",
+  },
 ]
 # /daily_parameters
 
@@ -286,7 +281,6 @@ semiannual_parameters = [
 
 
 schedules = [
-  *create_schedule_list(parameters_list=hourly_parameters, interval="hourly"),
   *create_schedule_list(
     parameters_list=daily_parameters, interval="daily", config={"minute": 1}
   ),
