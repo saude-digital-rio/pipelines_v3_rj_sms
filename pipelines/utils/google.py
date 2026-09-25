@@ -198,7 +198,7 @@ def download_file_from_bucket_task(gcs_uri: str):
   Baixa um único arquivo do Google Cloud Storage a partir de um
   URI 'gs://...' para um arquivo local, e retorna seu caminho
   """
-  return download_file_from_bucket(gcs_uri=gcs_uri)
+  return download_file_from_bucket(gcs_uri)
 
 
 def get_latest_file_from_gcs(gcs_folder_uri: str, extension: str = ".csv") -> str:

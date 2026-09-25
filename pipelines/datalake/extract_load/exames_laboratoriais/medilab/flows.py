@@ -35,7 +35,8 @@ def medilab_extraction(
     log(f"Busca de forma automática o arquivo mais recente na pasta do bucket: {gcs_uri}")
     gcs_uri = get_latest_csv_from_gcs(gcs_folder_uri=gcs_uri)
 
-  extracted_at = now_str()  # Data/hora de extração do arquivo do bucket
+  extracted_at = now_str()
+  
   local_csv_path: Optional[str] = None
 
   # Baixar o arquivo do Bucket para a máquina
@@ -46,8 +47,6 @@ def medilab_extraction(
   df = cleanup_columns_for_bigquery(
     df
   )  # Padroniza os nomes das colunas (remove espaços, acentos, etc.)
-
-  extracted_at = now().strftime("%Y-%m-%d %H:%M:%S")
 
   # Linhagem de dados(sem os espaços extras para não falhar no Linter)
   df["arquivo_origem"] = gcs_uri
@@ -61,7 +60,7 @@ def medilab_extraction(
     df=df,
     dataset_id=dataset_id,
     table_id=table_id,
-    dump_mode="replace",
+    dump_mode="append",
     source_format="csv",
     csv_delimiter=",",
   )
@@ -70,3 +69,4 @@ def medilab_extraction(
 
 
 _flows = [flow_config(flow=medilab_extraction, schedules=schedules)]
+
